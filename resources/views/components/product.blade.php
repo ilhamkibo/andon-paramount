@@ -7,14 +7,13 @@
             <div class="row justify-content-center">
                 @if (!empty($newDataPlans) && isset($newDataPlans[0]))
                 @foreach ($newDataPlans as $item)
-                <div class="col-lg-4 col-12">
+                <div class="d-flex flex-row justify-content-between">
                     <!-- small box -->
-                    <div class="small-box bg-white">
+                    {{-- <div class="small-box bg-white">
                         <h4 class="text-center px-2 py-2 mb-0 bg-secondary rounded-top"> {{$loop->iteration.'.
                             '.$item->bed_models }}
                         </h4>
                         <div class="inner">
-
                             <div class="d-flex flex-wrap justify-content-around align-items-center">
                                 <p style="flex-basis: 40%;" class="text-center mb-1 p-1 rounded bg-dark">{{
                                     $item->start_time }}</p>
@@ -24,18 +23,66 @@
                             <div class="d-flex flex-wrap justify-content-around align-items-center">
                                 <div class="text-center p-1 m-1 flex-item rounded bg-danger" style="flex-basis: 40%;">
                                     Target: {{ $item->target_quantity }} </div>
-                                <div class="text-center p-1 m-1 flex-item rounded bg-primary" style="flex-basis: 40%;">
-                                    Actual: 320
+                                <div id="actualQty{{ $loop->iteration }}"
+                                    class="text-center p-1 m-1 flex-item rounded bg-primary" style="flex-basis: 40%;">
+                                    Actual: 0
                                 </div>
                                 <div class="text-center p-1 m-1 flex-item rounded bg-info" style="flex-basis: 40%;">
                                     RT: {{ $item->tact_time }} min </div>
                             </div>
                         </div>
-                        {{-- <div class="icon">
-                            <i class="fas fa-industry"></i>
-                        </div> --}}
-                        {{-- <a href="#" class="small-box-footer">More info <i
-                                class="fas fa-arrow-circle-right"></i></a> --}}
+                    </div> --}}
+                    {{-- <div class="card">
+                        <div class="card-header border-0 pt-1">
+                            <i class="fas fa-chart-pie mr-1"></i>
+                            Production Summary
+                        </div>
+                        <div class="card-body pt-0 pb-1">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr class="py-0 my-0">
+                                        <th class="py-0 my-0">No</th>
+                                        <th class="py-0 my-0">Model</th>
+                                        <th class="py-0 my-0">RT</th>
+                                        <th class="py-0 my-0">Start Time</th>
+                                        <th class="py-0 my-0">Finish Time</th>
+                                        <th class="py-0 my-0">Target</th>
+                                        <th class="py-0 my-0">Actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($newDataPlans as $item)
+                                    <tr class="py-0 my-0">
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">2024-09-09 09:90:90</td>
+                                        <td class="py-0 my-0">2024-09-09 09:90:90</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div> --}}
+                    <div class="text-center mx-1 border p-1 bg-white shadow-sm rounded">
+                        <div class="border-bottom">
+                            <h5 class="mb-0"><strong>{{ $loop->iteration.'. '.$item->bed_models }}</strong></h5>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <span><strong>Target Qty</strong></span>
+                                <h4 class="border rounded"><strong>{{ $item->target_quantity }}</strong></h4>
+                            </div>
+                            <div class="col text-center">
+                                <span><strong>Actual Qty</strong></span>
+                                <h4 id="actualQty{{ $loop->iteration }}" class="border rounded"><strong>2</strong></h4>
+                            </div>
+                        </div>
+                        <div><strong>Start Time:</strong> {{ $item->start_time }}</div>
+                        <div class=""><strong>Finish Time:</strong> {{ $item->end_time }}</div>
                     </div>
                 </div>
                 @endforeach

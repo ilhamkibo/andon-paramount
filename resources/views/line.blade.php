@@ -60,18 +60,17 @@
 <div class="container-fluid">
     <!-- Small boxes (Stat box) -->
     <section class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-12">
             <div class="row justify-content-center">
                 @if (!empty($newDataPlans) && isset($newDataPlans[0]))
                 @foreach ($newDataPlans as $item)
-                <div class="col-lg-4 col-12">
+                <div class="d-flex flex-row justify-content-between">
                     <!-- small box -->
-                    <div class="small-box bg-white">
+                    {{-- <div class="small-box bg-white">
                         <h4 class="text-center px-2 py-2 mb-0 bg-secondary rounded-top"> {{$loop->iteration.'.
                             '.$item->bed_models }}
                         </h4>
                         <div class="inner">
-
                             <div class="d-flex flex-wrap justify-content-around align-items-center">
                                 <p style="flex-basis: 40%;" class="text-center mb-1 p-1 rounded bg-dark">{{
                                     $item->start_time }}</p>
@@ -89,11 +88,58 @@
                                     RT: {{ $item->tact_time }} min </div>
                             </div>
                         </div>
-                        {{-- <div class="icon">
-                            <i class="fas fa-industry"></i>
-                        </div> --}}
-                        {{-- <a href="#" class="small-box-footer">More info <i
-                                class="fas fa-arrow-circle-right"></i></a> --}}
+                    </div> --}}
+                    {{-- <div class="card">
+                        <div class="card-header border-0 pt-1">
+                            <i class="fas fa-chart-pie mr-1"></i>
+                            Production Summary
+                        </div>
+                        <div class="card-body pt-0 pb-1">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr class="py-0 my-0">
+                                        <th class="py-0 my-0">No</th>
+                                        <th class="py-0 my-0">Model</th>
+                                        <th class="py-0 my-0">RT</th>
+                                        <th class="py-0 my-0">Start Time</th>
+                                        <th class="py-0 my-0">Finish Time</th>
+                                        <th class="py-0 my-0">Target</th>
+                                        <th class="py-0 my-0">Actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($newDataPlans as $item)
+                                    <tr class="py-0 my-0">
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">2024-09-09 09:90:90</td>
+                                        <td class="py-0 my-0">2024-09-09 09:90:90</td>
+                                        <td class="py-0 my-0">1</td>
+                                        <td class="py-0 my-0">1</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div> --}}
+                    <div class="text-center mx-1 border py-1 px-2 bg-white shadow-sm rounded">
+                        <div class="border-bottom">
+                            <h5 class="mb-0"><strong>{{ $loop->iteration.'. '.$item->bed_models }}</strong></h5>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <span><strong>Target Qty</strong></span>
+                                <h4 class="border rounded"><strong>{{ $item->target_quantity }}</strong></h4>
+                            </div>
+                            <div class="col text-center">
+                                <span><strong>Actual Qty</strong></span>
+                                <h4 id="actualQty{{ $loop->iteration }}" class="border rounded"><strong>2</strong></h4>
+                            </div>
+                        </div>
+                        <div><strong>Start Time:</strong> {{ $item->start_time }}</div>
+                        <div class=""><strong>Finish Time:</strong> {{ $item->end_time }}</div>
                     </div>
                 </div>
                 @endforeach
@@ -106,64 +152,6 @@
                     </div>
                 </div>
                 @endif
-
-                <!-- ./col -->
-                {{-- <div class="col-lg-3 col-6">
-                    <!-- small box -->
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            @if (!empty($dataPlans) && isset($dataPlans[0]))
-                            <h3>{{ $dataPlans[0]->target_quantity }}</h3>
-                            @else
-                            <p>Data Plan tidak tersedia.</p>
-                            @endif
-                            <p>Target Quantity</p>
-                        </div>
-                        <div class="icon">
-                            <i class="ion ion-pie-graph"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div> --}}
-                <!-- ./col -->
-                {{-- <div class="col-lg-3 col-6">
-                    <!-- small box -->
-                    <div class="small-box bg-success">
-                        <div class="inner">
-                            @if (!empty($dataPlans) && isset($dataPlans[0]))
-                            <h3 id="actualQuantityBox">0</h3>
-                            @else
-                            <p>Data Plan tidak tersedia.</p>
-                            @endif
-                            <p>Actual Quantity</p>
-                        </div>
-                        <div class="icon">
-                            <i class="ion ion-stats-bars"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div> --}}
-                <!-- ./col -->
-                {{-- <div class="col-lg-3 col-6">
-                    <!-- small box -->
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            @if (!empty($dataPlans) && isset($dataPlans[0]))
-                            <h3>{{ $dataPlans[0]->bed_models->tact_time }}<span
-                                    style="font-size: 1.2rem">minutes/pcs</span></h3>
-                            @else
-                            <p>Data Plan tidak tersedia.</p>
-                            @endif
-                            <p>Cycle Time</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-wave-square"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div> --}}
-                <!-- ./col -->
-
                 <!-- ./col -->
             </div>
         </div>
@@ -238,12 +226,9 @@
                 <div class="card-body">
                     <div class="tab-content p-0">
                         <!-- Morris chart - Sales -->
-                        <div class="chart tab-pane active" id="revenue-chart"
-                            style="position: relative; height: 500px;">
+                        <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 50vh;">
                             @if (!empty($dataPlans) && isset($dataPlans[0]))
-                            <canvas id="revenue-chart-canvas" height="500"
-                                style="height: 500px; display: block; width: 900px;" width="900"
-                                class="chartjs-render-monitor"></canvas>
+                            <canvas id="revenue-chart-canvas" class="chartjs-render-monitor"></canvas>
                             @else
                             <div class="text-center">
                                 <h3>Plan Production Chart (No Data)</h3>
@@ -619,7 +604,7 @@ $dataChartObject = json_encode($dataChartObject);
 
                 if (actualQty) {
                     const datasetIndex = 2 * i - 1;
-                    actualQty.innerText = `Actual: ${salesChartData.datasets[datasetIndex].data[salesChartData.datasets[datasetIndex].data.length - 1].y}`;
+                    actualQty.innerHTML = `<strong>${salesChartData.datasets[datasetIndex].data[salesChartData.datasets[datasetIndex].data.length - 1].y}</strong> `;
                 }
             }
 
