@@ -9,7 +9,7 @@ class Plan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['target_quantity', 'bed_models_id', 'date', 'queue'];
+    protected $fillable = ['target_quantity', 'bed_models_id', 'date', 'queue', 'line_id'];
 
     public function line()
     {

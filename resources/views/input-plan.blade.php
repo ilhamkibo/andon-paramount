@@ -28,11 +28,11 @@
             {{-- <button id="toggleFormButton" class="border-0 bg-transparent"><i class="fas fa-chevron-right"></i>
                 <strong>Input Plan</strong>
             </button> --}}
-            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#addDataModal"
+            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#exampleModal"
                 onclick="setModalType('production')">+ Production Plan</button>
-            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#addDataModal"
+            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#exampleModal"
                 onclick="setModalType('master')">+ Production Master Data</button>
-            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#addDataModal"
+            <button type="button" class="btn btn-primary rounded" data-toggle="modal" data-target="#exampleModal"
                 onclick="setModalType('operation')">+ Operation Time</button>
         </div>
     </div>
@@ -515,8 +515,8 @@
         <!-- bottom row -->
     </div>
     <!-- /.row (main row) -->
-    <!-- Add Modal -->
-    <div class="modal fade" id="addDataModal" tabindex="-1" role="dialog" aria-labelledby="addPlanProductionLabel"
+    <!-- Add Modal by Form -->
+    <div class="modal fade" id="addDataModalByForm" tabindex="-1" role="dialog" aria-labelledby="addPlanProductionLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content" id="modalProduction">
@@ -759,6 +759,152 @@
             </div>
         </div>
     </div>
+    <!-- End Add Modal -->
+    <!-- Add Modal by Csv -->
+    <div class="modal fade" id="addDataModalByCsv" tabindex="-1" role="dialog" aria-labelledby="addPlanProductionLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="modalProductionCsv">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Upload File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body d-flex justify-content-center">
+                    @if (session()->has('message'))
+                    <div class="row">
+                        <div class="alert alert-success">
+                            {{ session('message') }}
+                        </div>
+                    </div>
+                    @endif
+                    <form action="{{ route('file.import-plan') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="fileExcel" class="form-label">File Excel</label>
+                            <input type="file" class="form-control py-1 @error('file') is-invalid @enderror"
+                                name="fileExcel" id="fileExcel" accept=".xlsx, .xls, .csv">
+                            <small>Note <b class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
+                            @error('fileExcel')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button wire:click="resetInput" type="button" class="btn btn-secondary"
+                        data-dismiss="modal">Close</button>
+                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
+                </div>
+            </div>
+            <div class="modal-content" id="modalOperationCsv">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">iplid File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body d-flex justify-content-center">
+                    @if (session()->has('message'))
+                    <div class="row">
+                        <div class="alert alert-success">
+                            {{ session('message') }}
+                        </div>
+                    </div>
+                    @endif
+                    <form wire:submit.prevent='submit'>
+                        @csrf
+                        <div class="mb-3">
+                            <label for="fileExcel" class="form-label">File Excel</label>
+                            <input type="file" class="form-control py-1 @error('file') is-invalid @enderror"
+                                wire:model="file">
+                            <small>Note <b class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
+                            @error('file')
+                            <div id="validationServer03Feedback" class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button wire:click="resetInput" type="button" class="btn btn-secondary"
+                        data-dismiss="modal">Close</button>
+                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
+                </div>
+            </div>
+            <div class="modal-content" id="modalMasterCsv">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Upload File Bed Models Master </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body d-flex justify-content-center">
+                    @if (session()->has('message'))
+                    <div class="row">
+                        <div class="alert alert-success">
+                            {{ session('message') }}
+                        </div>
+                    </div>
+                    @endif
+                    <form action="{{ route('file.import-models') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="fileExcel" class="form-label">File Excel</label>
+                            <input type="file" class="form-control py-1 @error('fileExcel') is-invalid @enderror"
+                                name="fileExcel" id="fileExcel" accept=".xlsx, .xls, .csv" required>
+                            <small>Note <b class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
+                            @error('fileExcel')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Add Modal -->
+    <!-- Option Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Select Method</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body d-flex justify-content-center">
+                    <button type="button" class="btn btn-success mx-1" data-toggle="modal"
+                        data-target="#addDataModalByCsv" style="width: 100%" data-dismiss="modal">
+                        By CSV
+                    </button>
+                    <button type="button" class="btn btn-info mx-1" data-toggle="modal"
+                        data-target="#addDataModalByForm" style="width: 100%" data-dismiss="modal">
+                        By Form
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Option Modal -->
     <!-- Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog"
         aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
@@ -783,7 +929,7 @@
             </div>
         </div>
     </div>
-    <!-- End Add Modal -->
+    <!-- End Delete Modal -->
 
 </div><!-- /.container-fluid -->
 {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
@@ -796,15 +942,24 @@
             document.getElementById('modalProduction').style.display = 'block';
             document.getElementById('modalOperation').style.display = 'none';
             document.getElementById('modalMaster').style.display = 'none';
+            document.getElementById('modalProductionCsv').style.display = 'block';
+            document.getElementById('modalOperationCsv').style.display = 'none';
+            document.getElementById('modalMasterCsv').style.display = 'none';
         } else if (type === 'operation') {
             document.getElementById('modalProduction').style.display = 'none';
-            document.getElementById('modalMaster').style.display = 'none';
             document.getElementById('modalOperation').style.display = 'block';
+            document.getElementById('modalMaster').style.display = 'none';
+            document.getElementById('modalProductionCsv').style.display = 'none';
+            document.getElementById('modalOperationCsv').style.display = 'block';
+            document.getElementById('modalMasterCsv').style.display = 'none';
             // Show fields relevant to Operation Time
         } else if (type === 'master') {
-            document.getElementById('modalMaster').style.display = 'block';
             document.getElementById('modalProduction').style.display = 'none';
             document.getElementById('modalOperation').style.display = 'none';
+            document.getElementById('modalMaster').style.display = 'block';
+            document.getElementById('modalProductionCsv').style.display = 'none';
+            document.getElementById('modalOperationCsv').style.display = 'none';
+            document.getElementById('modalMasterCsv').style.display = 'block';
         }
     }
 

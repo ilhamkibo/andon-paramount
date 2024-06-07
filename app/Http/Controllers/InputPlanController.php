@@ -9,6 +9,10 @@ use App\Models\Plan;
 use App\Models\Production;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Imports\BedModelsImport;
+use App\Imports\PlanImport;
+use App\Imports\ProductionImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InputPlanController extends Controller
 {
@@ -16,7 +20,6 @@ class InputPlanController extends Controller
 
     public function index()
     {
-
         $plans = $this->getDataPlan();
 
         $lines = Line::all();
@@ -319,5 +322,42 @@ class InputPlanController extends Controller
             Plan::whereDate('date', $today)->delete();
         }
         return redirect('/input-plan')->with('sukses', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+    }
+
+    public function importMaster(Request $request)
+    {
+
+        $request->validate([
+            'fileExcel' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        // Menangani request jika validasi berhasil
+        if ($request->hasFile('fileExcel')) {
+            $file = $request->file('fileExcel');
+            Excel::import(new BedModelsImport, $file);
+
+            return redirect('/input-plan')->with('sukses', 'Bed Models Master updated!');
+        }
+
+        // Redirect back with error if file is not present
+        return redirect()->back()->with('gagal', 'File tidak ditemukan.');
+    }
+
+    public function importPlan(Request $request)
+    {
+
+        $request->validate([
+            'fileExcel' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        // Menangani request jika validasi berhasil
+        if ($request->hasFile('fileExcel')) {
+            $file = $request->file('fileExcel');
+            Excel::import(new PlanImport, $file);
+            return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
+        }
+
+        // Redirect back with error if file is not present
+        return redirect()->back()->with('gagal', 'File tidak ditemukan.');
     }
 }

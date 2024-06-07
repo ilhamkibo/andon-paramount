@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 class LineController extends Controller
 {
     public $message = '';
+
     public function index()
     {
         $today = Carbon::today();

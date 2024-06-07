@@ -124,22 +124,22 @@
                         </div>
 
                     </div> --}}
-                    <div class="text-center mx-1 border py-1 px-2 bg-white shadow-sm rounded">
+                    <div class="text-center m-1 border py-1 px-2 bg-white shadow-sm rounded">
                         <div class="border-bottom">
                             <h5 class="mb-0"><strong>{{ $loop->iteration.'. '.$item->bed_models }}</strong></h5>
                         </div>
                         <div class="row">
                             <div class="col text-center">
-                                <span><strong>Target Qty</strong></span>
-                                <h4 class="border rounded"><strong>{{ $item->target_quantity }}</strong></h4>
+                                <span class="text-danger"><strong>Target Qty</strong></span>
+                                <h3 class="border rounded"><strong>{{ $item->target_quantity }}</strong></h3>
                             </div>
                             <div class="col text-center">
-                                <span><strong>Actual Qty</strong></span>
-                                <h4 id="actualQty{{ $loop->iteration }}" class="border rounded"><strong>2</strong></h4>
+                                <span class="text-info"><strong>Actual Qty</strong></span>
+                                <h3 id="actualQty{{ $loop->iteration }}" class="border rounded"><strong>-</strong></h3>
                             </div>
                         </div>
-                        <div><strong>Start Time:</strong> {{ $item->start_time }}</div>
-                        <div class=""><strong>Finish Time:</strong> {{ $item->end_time }}</div>
+                        <div><strong class="text-success">Start Time:</strong> {{ $item->start_time }}</div>
+                        <div class=""><strong class="text-warning">Finish Time:</strong> {{ $item->end_time }}</div>
                     </div>
                 </div>
                 @endforeach
@@ -161,7 +161,7 @@
     <!-- /.row -->
     <!-- Main row -->
     <section class="row mb-3 justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-lg-11">
             <form class="form-inline" method="get" action="{{ route('production') }}">
                 @csrf
                 <div hidden>
@@ -195,7 +195,7 @@
             <div class="alert alert-danger text-center">{{ $message }}</div>
             @endif
         </div>
-        <div class="col-lg-10">
+        <div class="col-lg-11">
             <!-- Custom tabs (Charts with tabs)-->
 
             <div class="card">
