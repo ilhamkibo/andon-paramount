@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('operation_times', function (Blueprint $table) {
             $table->id();
+            $table->integer('option')->nullable();
             $table->timeTz('start', $precision = 0);
             $table->timeTz('finish', $precision = 0);
             $table->integer('status');

@@ -6,12 +6,10 @@ use App\Models\BedModels;
 use App\Models\Line;
 use App\Models\OperationTime;
 use App\Models\Plan;
-use App\Models\Production;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Imports\BedModelsImport;
 use App\Imports\PlanImport;
-use App\Imports\ProductionImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class InputPlanController extends Controller
@@ -20,14 +18,32 @@ class InputPlanController extends Controller
 
     public function index()
     {
+        // $gregorianDate = '2024-04-01';
+        // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
+        $dt = Carbon::now();
+
+        if (request('date')) {
+            $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+        }
+
+        $tangalaan  = $dt->toHijri()->isoFormat('MMMM');
+        // Cek apakah bulan Hijriah adalah Ramadhan
+        if ($tangalaan === 'Ramadan') {
+            $operationTimes = OperationTime::where('option', 3)->get();
+        } else {
+            $tangalaan  = $dt->isoFormat('dddd');
+            if ($tangalaan === 'Friday') {
+                $operationTimes = OperationTime::where('option', 2)->get();
+            } else {
+                $operationTimes = OperationTime::where('option', 1)->get();
+            }
+        }
+
         $plans = $this->getDataPlan();
 
         $lines = Line::all();
         $bedModels = BedModels::orderBy('name', 'asc')->get();
-        $operationTimes = OperationTime::all();
 
-        // dd($plans);
-        // dd($estimateSpendTime[0] / 60);
         return view('input-plan', [
             'plans' => $plans,
             'lines' => $lines,

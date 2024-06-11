@@ -16,7 +16,27 @@ class LineController extends Controller
     public function index()
     {
         $today = Carbon::today();
-        $operationTimes = OperationTime::all();
+        $operationTimes = OperationTime::where('option', 1)->get();
+        $dt = Carbon::now();
+
+        if (request('date')) {
+            $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+        }
+
+        $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+        // Cek apakah bulan Hijriah adalah Ramadhan
+        if ($cekTanggal === 'Ramadan') {
+            $operationTimes = OperationTime::where('option', 3)->get();
+        } else {
+            $cekTanggal  = $dt->isoFormat('dddd');
+            if ($cekTanggal === 'Friday') {
+                $operationTimes = OperationTime::where('option', 2)->get();
+            } else {
+                $operationTimes = OperationTime::where('option', 1)->get();
+            }
+        }
+
+        // dd($operationTimes);
         $dataPlans = $this->getDataPlan($today);
         $newDataPlans = $this->newDataPlan($dataPlans, $operationTimes);
         // dd(json_encode($dataPlans));
@@ -37,7 +57,7 @@ class LineController extends Controller
         //array untuk breaktime dan menghitung value produksi setiap 5 menit
         // $breakValue = [];
 
-        return view('line', compact('dataChartObject', 'timeBreakModal', 'chartTime', 'newDataPlans', 'dataPlans', 'breakTimes0', 'breakTimes1', 'forTooltip0', 'forTooltip1'))->with('message', $this->message);
+        return view('line', compact('dataChartObject', 'operationTimes', 'timeBreakModal', 'chartTime', 'newDataPlans', 'dataPlans', 'breakTimes0', 'breakTimes1', 'forTooltip0', 'forTooltip1'))->with('message', $this->message);
     }
 
     private function getDataPlan($today)

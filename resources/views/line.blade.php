@@ -204,7 +204,9 @@
                         <i class="fas fa-chart-line mr-1"></i>
                         @if (!empty($dataPlans) && isset($dataPlans[0]))
                         {{-- <span>Plan Production Line {{ $dataPlans[0]->line_id }} Chart</span> --}}
-                        <span>Plan Production Chart | <a
+                        <span>Plan Production Chart | <strong>{{ $operationTimes[0]->option == 1 ? "[Normal Day]" :
+                                ($operationTimes[0]->option
+                                == 2 ? "[Friday]" : "[Ramadan]") }}</strong> | <a
                                 href="line/{{ \Carbon\Carbon::parse($dataPlans[0]->date)->format('Y-m-d') }}">Details
                                 data <i class="fas fa-arrow-circle-right"></i></a>
                         </span>

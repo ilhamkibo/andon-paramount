@@ -384,7 +384,9 @@
                 <div class="card-header border-0 d-flex align-items-center">
                     <h3 class="card-title">
                         <i class="fas fa-bell mr-1"></i>
-                        Operation Time
+                        Operation Time <strong>{{ $operationTimes[0]->option == 1 ? "[Normal Day]" :
+                            ($operationTimes[0]->option
+                            == 2 ? "[Friday]" : "[Ramadan]") }}</strong>
                     </h3>
                 </div>
                 <div class="card-body">
@@ -402,7 +404,7 @@
                         <tbody>
                             @foreach ($operationTimes as $item)
                             <tr>
-                                <td class="py-1 text-center align-middle">{{ $item->id }}</td>
+                                <td class="py-1 text-center align-middle">{{ $loop->iteration }}</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->start, 0, 5) }}</td>
                                 <td class="py-1 text-center align-middle">~</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->finish, 0, 5) }}</td>
@@ -963,8 +965,6 @@
         }
     }
 
-
-
     $(function () {
         $('#productionPlanTable').DataTable({
             "paging": false,
@@ -1121,5 +1121,16 @@
             $('#bulkDeleteForm').submit();
         });
     });
+
+    const specificDate = new Date('2024-04-01'); // Buat objek Date untuk 11 Juni 2024
+    const jmmm = new Intl.DateTimeFormat('en-TN-u-ca-islamic', {
+        day: 'numeric', 
+        month: 'long', 
+        weekday: 'long', 
+        year: 'numeric'
+    }).format(specificDate);
+
+        console.log("🚀 ~ jmmm:", jmmm);
+
 </script>
 @endsection

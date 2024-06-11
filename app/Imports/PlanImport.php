@@ -8,18 +8,16 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithMappedCells;
 
-use function PHPSTORM_META\type;
-
 class PlanImport implements WithMappedCells, ToModel
 {
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return array
      */
     public function mapping(): array
     {
-        $mapping["line_id"] = "E2";
+        $mapping = [
+            'line_id' => 'E2',
+        ];
 
         for ($i = 1; $i <= 6; $i++) {
             $mapping["id{$i}"] = "A" . ($i + 1);
@@ -27,28 +25,40 @@ class PlanImport implements WithMappedCells, ToModel
             $mapping["quantity{$i}"] = "C" . ($i + 1);
             $mapping["date{$i}"] = "D" . ($i + 1);
         }
+
         return $mapping;
     }
 
-    public function model(array $row)
+    /**
+     * @param array $row
+     *
+     * @return void
+     */
+    public function model(array $row): void
     {
-        for ($i = 1; $i <= 6; $i++) {
-            if (!empty($row["id{$i}"]) && !empty($row["code{$i}"]) && !empty($row["quantity{$i}"]) && !empty($row["date{$i}"]) && !empty($row["line_id"])) {
-                // Ambil nilai tanggal mentah dari kolom
-                $rawDate = $row["date{$i}"];
-                $dateR = Carbon::parse(gmdate('Y-m-d', ((int)$rawDate - 25569) * 86400));
-                $bedModel = BedModels::where('name', $row["code{$i}"])->first();
+        $lineId = $row['line_id'];
 
-                if ($bedModel && $dateR) {
+        for ($i = 1; $i <= 6; $i++) {
+            $id = $row["id{$i}"];
+            $code = $row["code{$i}"];
+            $quantity = $row["quantity{$i}"];
+            $date = $row["date{$i}"];
+
+            if ($id && $code && $quantity && $date && $lineId) {
+                $dateR = Carbon::parse(gmdate('Y-m-d', ((int)$date - 25569) * 86400));
+                $bedModel = BedModels::where('name', $code)->first();
+
+                if ($bedModel) {
                     Plan::updateOrInsert(
                         [
-                            'date' => $dateR, 'queue' => $i
+                            'date' => $dateR,
+                            'queue' => $i,
                         ],
                         [
                             'queue' => $i,
                             'bed_models_id' => $bedModel->id,
-                            'target_quantity' => $row["quantity{$i}"],
-                            'line_id' => $row["line_id"]
+                            'target_quantity' => $quantity,
+                            'line_id' => $lineId,
                         ]
                     );
                 }

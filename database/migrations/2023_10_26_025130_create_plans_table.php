@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->integer('line_id')->default(1);
+            $table->integer('time_option')->default(1);
             $table->integer('queue');
             $table->integer('bed_models_id');
             $table->integer('target_quantity');
