@@ -384,10 +384,24 @@
                 <div class="card-header border-0 d-flex align-items-center">
                     <h3 class="card-title">
                         <i class="fas fa-bell mr-1"></i>
-                        Operation Time <strong>{{ $operationTimes[0]->option == 1 ? "[Normal Day]" :
-                            ($operationTimes[0]->option
-                            == 2 ? "[Friday]" : "[Ramadan]") }}</strong>
+                        Operation Time
                     </h3>
+
+                    <form action="" class="form-inline">
+                        @csrf
+                        <div class="form-group mx-sm-3 mb-2">
+                            <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
+                                name="opTime">
+                                <option value="1" {{ $operationTimes[0]->option == 1 ? 'selected' : ''
+                                    }}>Normal Day</option>
+                                <option value="2" {{ $operationTimes[0]->option == 2 ? 'selected' : ''
+                                    }}>Friday</option>
+                                <option value="3" {{ $operationTimes[0]->option == 3 ? 'selected' : ''
+                                    }}>Ramadan</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Submit Change</button>
+                    </form>
                 </div>
                 <div class="card-body">
                     <table id="operationTimeTable" class="table text-center table-bordered my-0 table-hover">

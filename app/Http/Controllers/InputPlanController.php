@@ -12,6 +12,8 @@ use App\Imports\BedModelsImport;
 use App\Imports\PlanImport;
 use Maatwebsite\Excel\Facades\Excel;
 
+use function PHPUnit\Framework\isEmpty;
+
 class InputPlanController extends Controller
 {
     public $message = '';
@@ -20,30 +22,33 @@ class InputPlanController extends Controller
     {
         // $gregorianDate = '2024-04-01';
         // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
-        $dt = Carbon::now();
-
-        if (request('date')) {
-            $dt = Carbon::createFromFormat('Y-m-d', request('date'));
-        }
-
-        $tangalaan  = $dt->toHijri()->isoFormat('MMMM');
-        // Cek apakah bulan Hijriah adalah Ramadhan
-        if ($tangalaan === 'Ramadan') {
-            $operationTimes = OperationTime::where('option', 3)->get();
-        } else {
-            $tangalaan  = $dt->isoFormat('dddd');
-            if ($tangalaan === 'Friday') {
-                $operationTimes = OperationTime::where('option', 2)->get();
-            } else {
-                $operationTimes = OperationTime::where('option', 1)->get();
-            }
-        }
 
         $plans = $this->getDataPlan();
+        if (count($plans) === 0) {
+            $dt = Carbon::now();
+            if (request('date')) {
+                $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+            }
+
+            $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+            // Cek apakah bulan Hijriah adalah Ramadhan
+            if ($cekTanggal === 'Ramadan') {
+                $operationTimes = OperationTime::where('option', 3)->get();
+            } else {
+                $cekTanggal  = $dt->isoFormat('dddd');
+                if ($cekTanggal === 'Friday') {
+                    $operationTimes = OperationTime::where('option', 2)->get();
+                } else {
+                    $operationTimes = OperationTime::where('option', 1)->get();
+                }
+            }
+        } else {
+            $operationTimes = OperationTime::where('option', $plans[0]->option_time)->get();
+        }
+
 
         $lines = Line::all();
         $bedModels = BedModels::orderBy('name', 'asc')->get();
-
         return view('input-plan', [
             'plans' => $plans,
             'lines' => $lines,
@@ -65,13 +70,12 @@ class InputPlanController extends Controller
                 ->orderBy('queue', 'asc')
                 ->get();
         }
+        // dd($dataPlans);
 
         if (count($dataPlans) !== 0) {
-            $operationTimes = OperationTime::all();
-
+            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
             $resultSet = [];
             $previousOperationEnd = '';
-
             foreach ($dataPlans as $key => $dataPlan) {
                 $bedModelId = $dataPlan->bed_models_id;
                 $targetQuantity = $dataPlan->target_quantity;
@@ -123,6 +127,7 @@ class InputPlanController extends Controller
 
                 $resultSet[] = (object)[
                     'id' => $dataPlan->id,
+                    'option_time' => $dataPlan->time_option,
                     'line_id' => $dataPlan->line_id,
                     'start_time' => $startOperation,
                     'end_time' => $estimatedEndTime,
@@ -155,7 +160,6 @@ class InputPlanController extends Controller
 
         $resultSet = [];
         // dd($validatedData);
-        $today = Carbon::today();
         $todayDataPlan = Plan::whereDate('date', $validatedData['date'])->latest()->get();
         // dd($todayDataPlan);
         if (count($todayDataPlan) !== 0) {
@@ -165,11 +169,24 @@ class InputPlanController extends Controller
                 $bedModelId = $modelId;
                 $targetQuantity = $validatedData['target_quantity'][$key];
                 $queue = $validatedData['queue'][$key];
-
+                $dt = Carbon::createFromFormat('Y-m-d', $validatedData['date']);
+                $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+                // Cek apakah bulan Hijriah adalah Ramadhan
+                if ($cekTanggal === 'Ramadan') {
+                    $timeOption = 3;
+                } else {
+                    $cekTanggal  = $dt->isoFormat('dddd');
+                    if ($cekTanggal === 'Friday') {
+                        $timeOption = 2;
+                    } else {
+                        $timeOption = 1;
+                    }
+                }
                 $resultSet[] = [
                     'date' => $validatedData['date'],
                     'target_quantity' => $targetQuantity,
                     'bed_models_id' => $bedModelId,
+                    'time_option' => $timeOption,
                     'queue' => $queue
                 ];
             }
