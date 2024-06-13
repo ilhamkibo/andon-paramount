@@ -34,3 +34,4 @@ Route::post('/store-operation', [InputPlanController::class, 'storeOperationtime
 Route::post('/planData/{id}', [InputPlanController::class, 'updatePlanData'])->name('planData.update');
 Route::delete('/planData/{id}', [InputPlanController::class, 'destroyPlanData'])->name('planData.destroy');
 Route::delete('/planData', [InputPlanController::class, 'bulkDestroyPlanData'])->name('planData.bulkDestroy');
+Route::post('/operationTimePlan/{date}', [InputPlanController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update');

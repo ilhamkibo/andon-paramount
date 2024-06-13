@@ -46,7 +46,6 @@ class InputPlanController extends Controller
             $operationTimes = OperationTime::where('option', $plans[0]->option_time)->get();
         }
 
-
         $lines = Line::all();
         $bedModels = BedModels::orderBy('name', 'asc')->get();
         return view('input-plan', [
@@ -312,6 +311,16 @@ class InputPlanController extends Controller
         ]);
         return redirect('/input-plan')->with('sukses', 'Operation time data updated successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
 
+    }
+
+    public function updateOperationTimePlanData(Request $request, $date)
+    {
+        $plans = Plan::where('date', $date)->get();
+        if ($plans->isEmpty()) { // Check if the collection is empty
+            return redirect('/input-plan')->with('gagal', 'Data plan on that date is not found!');
+        }
+
+        dd($plans, $request);
     }
 
     public function destroyMasterData($id)

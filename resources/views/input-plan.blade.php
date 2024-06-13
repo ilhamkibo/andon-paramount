@@ -387,7 +387,9 @@
                         Operation Time
                     </h3>
 
-                    <form action="" class="form-inline">
+                    <form
+                        action="{{ route('operationTimePlan.update', ['date' => request('date') ? request('date') : now()->format('Y-m-d')]) }}"
+                        method="POST" class="form-inline">
                         @csrf
                         <div class="form-group mx-sm-3 mb-2">
                             <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
