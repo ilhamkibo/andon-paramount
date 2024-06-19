@@ -24,6 +24,7 @@ Route::get('/line/{tanggal}', [LineController::class, 'show'])->name('production
 Route::get('api/get-latest-data/{tanggal}', [LineController::class, 'getData'])->name('anjing');
 Route::post('/import-models-file', [InputPlanController::class, 'importMaster'])->name('file.import-models');
 Route::post('/import-plan-file', [InputPlanController::class, 'importPlan'])->name('file.import-plan');
+Route::post('/import-time-file', [InputPlanController::class, 'importTime'])->name('file.import-time');
 Route::get('/input-plan', [InputPlanController::class, 'index'])->name('input-plan');
 Route::post('/store-data', [InputPlanController::class, 'store'])->name('store-data');
 Route::post('/masterData/{id}', [InputPlanController::class, 'addMasterData'])->name('masterData.add');
@@ -34,4 +35,4 @@ Route::post('/store-operation', [InputPlanController::class, 'storeOperationtime
 Route::post('/planData/{id}', [InputPlanController::class, 'updatePlanData'])->name('planData.update');
 Route::delete('/planData/{id}', [InputPlanController::class, 'destroyPlanData'])->name('planData.destroy');
 Route::delete('/planData', [InputPlanController::class, 'bulkDestroyPlanData'])->name('planData.bulkDestroy');
-Route::post('/operationTimePlan/{date}', [InputPlanController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update');
+Route::post('/operationTimePlan/{date}', [LineController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update');

@@ -9,8 +9,10 @@ use App\Models\Plan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Imports\BedModelsImport;
+use App\Imports\OperationTimeImport;
 use App\Imports\PlanImport;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Calculation\Engine\Operands\Operand;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -24,28 +26,29 @@ class InputPlanController extends Controller
         // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
 
         $plans = $this->getDataPlan();
-        if (count($plans) === 0) {
-            $dt = Carbon::now();
-            if (request('date')) {
-                $dt = Carbon::createFromFormat('Y-m-d', request('date'));
-            }
+        // if (count($plans) === 0) {
+        //     $dt = Carbon::now();
+        //     if (request('date')) {
+        //         $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+        //     }
 
-            $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
-            // Cek apakah bulan Hijriah adalah Ramadhan
-            if ($cekTanggal === 'Ramadan') {
-                $operationTimes = OperationTime::where('option', 3)->get();
-            } else {
-                $cekTanggal  = $dt->isoFormat('dddd');
-                if ($cekTanggal === 'Friday') {
-                    $operationTimes = OperationTime::where('option', 2)->get();
-                } else {
-                    $operationTimes = OperationTime::where('option', 1)->get();
-                }
-            }
-        } else {
-            $operationTimes = OperationTime::where('option', $plans[0]->option_time)->get();
-        }
-
+        //     $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+        //     // Cek apakah bulan Hijriah adalah Ramadhan
+        //     if ($cekTanggal === 'Ramadan') {
+        //         $operationTimes = OperationTime::where('option', 3)->get();
+        //     } else {
+        //         $cekTanggal  = $dt->isoFormat('dddd');
+        //         if ($cekTanggal === 'Friday') {
+        //             $operationTimes = OperationTime::where('option', 2)->get();
+        //         } else {
+        //             $operationTimes = OperationTime::where('option', 1)->get();
+        //         }
+        //     }
+        // } else {
+        //     $operationTimes = OperationTime::where('option', $plans[0]->time_option)->get();
+        // }
+        $operationTimes = OperationTime::orderBy('option', 'asc')->get();
+        // dd($operationTimes);
         $lines = Line::all();
         $bedModels = BedModels::orderBy('name', 'asc')->get();
         return view('input-plan', [
@@ -126,7 +129,7 @@ class InputPlanController extends Controller
 
                 $resultSet[] = (object)[
                     'id' => $dataPlan->id,
-                    'option_time' => $dataPlan->time_option,
+                    'time_option' => $dataPlan->time_option,
                     'line_id' => $dataPlan->line_id,
                     'start_time' => $startOperation,
                     'end_time' => $estimatedEndTime,
@@ -207,6 +210,7 @@ class InputPlanController extends Controller
             'start' => 'required',
             'finish' => 'required',
             'status' => ['required'],
+            'opTime' => ['required'],
         ]);
 
         // dd($validatedData);
@@ -313,16 +317,6 @@ class InputPlanController extends Controller
 
     }
 
-    public function updateOperationTimePlanData(Request $request, $date)
-    {
-        $plans = Plan::where('date', $date)->get();
-        if ($plans->isEmpty()) { // Check if the collection is empty
-            return redirect('/input-plan')->with('gagal', 'Data plan on that date is not found!');
-        }
-
-        dd($plans, $request);
-    }
-
     public function destroyMasterData($id)
     {
         $bedModel = BedModels::findOrFail($id);
@@ -396,6 +390,24 @@ class InputPlanController extends Controller
         if ($request->hasFile('fileExcel')) {
             $file = $request->file('fileExcel');
             Excel::import(new PlanImport, $file);
+            return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
+        }
+
+        // Redirect back with error if file is not present
+        return redirect()->back()->with('gagal', 'File tidak ditemukan.');
+    }
+
+    public function importTime(Request $request)
+    {
+
+        $request->validate([
+            'fileExcel' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        // Menangani request jika validasi berhasil
+        if ($request->hasFile('fileExcel')) {
+            $file = $request->file('fileExcel');
+            Excel::import(new OperationTimeImport, $file);
             return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
         }
 

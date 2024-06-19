@@ -386,30 +386,13 @@
                         <i class="fas fa-bell mr-1"></i>
                         Operation Time
                     </h3>
-
-                    <form
-                        action="{{ route('operationTimePlan.update', ['date' => request('date') ? request('date') : now()->format('Y-m-d')]) }}"
-                        method="POST" class="form-inline">
-                        @csrf
-                        <div class="form-group mx-sm-3 mb-2">
-                            <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
-                                name="opTime">
-                                <option value="1" {{ $operationTimes[0]->option == 1 ? 'selected' : ''
-                                    }}>Normal Day</option>
-                                <option value="2" {{ $operationTimes[0]->option == 2 ? 'selected' : ''
-                                    }}>Friday</option>
-                                <option value="3" {{ $operationTimes[0]->option == 3 ? 'selected' : ''
-                                    }}>Ramadan</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary mb-2">Submit Change</button>
-                    </form>
                 </div>
                 <div class="card-body">
                     <table id="operationTimeTable" class="table text-center table-bordered my-0 table-hover">
                         <thead>
                             <tr>
                                 <th>No.</th>
+                                <th>Option</th>
                                 <th>Start</th>
                                 <th>~</th>
                                 <th>Finish</th>
@@ -420,7 +403,8 @@
                         <tbody>
                             @foreach ($operationTimes as $item)
                             <tr>
-                                <td class="py-1 text-center align-middle">{{ $loop->iteration }}</td>
+                                <td class="py-1 text-center align-middle">{{ $item->id }}</td>
+                                <td class="py-1 text-center align-middle">{{ $item->option }}</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->start, 0, 5) }}</td>
                                 <td class="py-1 text-center align-middle">~</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->finish, 0, 5) }}</td>
@@ -443,7 +427,9 @@
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="editOperationTimeModalLabel">Edit Data</h5>
+                                                <h5 class="modal-title" id="editOperationTimeModalLabel">Edit Data [{{
+                                                    $item->option == 1 ? 'Normal Day' : ($item->option == 2 ? 'Friday' :
+                                                    "Ramadan") }}] </h5>
                                                 <button type="button" class="close" data-dismiss="modal"
                                                     aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
@@ -539,7 +525,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content" id="modalProduction">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addPlanProductionLabel">Edit Data</h5>
+                    <h5 class="modal-title" id="addPlanProductionLabel">Add Data Production Plan</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -711,7 +697,7 @@
             </div>
             <div class="modal-content" id="modalOperation">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addOperationTimeModalLabel">Edit Data</h5>
+                    <h5 class="modal-title" id="addOperationTimeModalLabel">Add Data Operation Time</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -721,6 +707,15 @@
                     <div class="modal-body">
                         <!-- Your edit form goes here -->
                         <!-- Example: -->
+                        <div class="form-group">
+                            <label for="opTime">Operation Time</label>
+                            <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
+                                name="opTime">
+                                <option value="1">Normal Day</option>
+                                <option value="2">Friday</option>
+                                <option value="3">Ramadan</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="start">Start</label>
                             <input step="300" required type="time" class="form-control" id="start" name="start">
@@ -747,7 +742,7 @@
             </div>
             <div class="modal-content" id="modalMaster">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addOperationTimeModalLabel">Edit Data</h5>
+                    <h5 class="modal-title" id="addOperationTimeModalLabel">Add New Bed Model</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -784,7 +779,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content" id="modalProductionCsv">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Upload File</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Upload File Plan Production</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -801,8 +796,8 @@
                         @csrf
                         <div class="mb-3">
                             <label for="fileExcel" class="form-label">File Excel</label>
-                            <input type="file" class="form-control py-1 @error('file') is-invalid @enderror"
-                                name="fileExcel" id="fileExcel" accept=".xlsx, .xls, .csv">
+                            <input type="file" class="form-control py-1 @error('fileExcel') is-invalid @enderror"
+                                name="fileExcel" id="fileExcel" accept=".xlsx, .xls, .csv" required>
                             <small>Note <b class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
                             @error('fileExcel')
                             <div class="invalid-feedback">
@@ -821,7 +816,7 @@
             </div>
             <div class="modal-content" id="modalOperationCsv">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">iplid File</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Upload File Opertaion Time</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -834,15 +829,15 @@
                         </div>
                     </div>
                     @endif
-                    <form wire:submit.prevent='submit'>
+                    <form action="{{ route('file.import-time') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
                             <label for="fileExcel" class="form-label">File Excel</label>
-                            <input type="file" class="form-control py-1 @error('file') is-invalid @enderror"
-                                wire:model="file">
-                            <small>Note <b class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
-                            @error('file')
-                            <div id="validationServer03Feedback" class="invalid-feedback">
+                            <input type="file" class="form-control py-1 @error('fileExcel') is-invalid @enderror"
+                                name="fileExcel" id="fileExcel" accept=".xlsx, .xls, .csv" required> <small>Note <b
+                                    class="text-danger">*</b>: Type file harus xlsx, xls, dan csv</small>
+                            @error('fileExcel')
+                            <div class="invalid-feedback">
                                 {{ $message }}
                             </div>
                             @enderror
@@ -853,7 +848,6 @@
                 <div class="modal-footer">
                     <button wire:click="resetInput" type="button" class="btn btn-secondary"
                         data-dismiss="modal">Close</button>
-                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
                 </div>
             </div>
             <div class="modal-content" id="modalMasterCsv">
@@ -1032,7 +1026,29 @@
 
     });
 
-    $(function () {
+    // $(function () {
+    //     $('#operationTimeTable').DataTable({
+    //         "paging": false,
+    //         "scrollY": "250px",
+    //         "scrollCollapse": true,
+    //         "lengthChange": true,
+    //         "searching": false,
+    //         "ordering": true,
+    //         "info": false,
+    //         "autoWidth": true,
+    //         "responsive": true,
+    //         buttons: [],
+    //         dom: "<'row'<'col-lg-2'l><'col-lg-5'B><'col-lg-5'f>>" +
+    //             "<'row'<'col-md-12'tr>>" +
+    //             "<'row'<'col-md-7'p>>",
+    //         initComplete: function () {
+    //             $('#operationTimeTable_wrapper > .row:first').remove();
+    //         }
+    //     });
+
+    // });
+
+    $(document).ready(function() {
         $('#operationTimeTable').DataTable({
             "paging": false,
             "scrollY": "250px",
@@ -1043,15 +1059,33 @@
             "info": false,
             "autoWidth": true,
             "responsive": true,
-            buttons: [],
-            dom: "<'row'<'col-lg-2'l><'col-lg-5'B><'col-lg-5'f>>" +
-                "<'row'<'col-md-12'tr>>" +
-                "<'row'<'col-md-7'p>>",
-            initComplete: function () {
+            "columnDefs": [
+                { "visible": false, "targets": 1 } // Sembunyikan kolom "option"
+            ],
+            "order": [[1, 'asc'], [2, 'asc']], // Urutkan berdasarkan "option" dan "start"
+            "rowGroup": {
+                dataSrc: 1,
+                startRender: function (rows, group) {
+                    let groupName = '';
+                    switch(group) {
+                        case '1':
+                            groupName = 'Normal Day';
+                            break;
+                        case '2':
+                            groupName = 'Friday';
+                            break;
+                        case '3':
+                            groupName = 'Ramadan';
+                            break;
+                    }
+                    return $('<tr/>')
+                        .append('<td colspan="7" class="text-center"><strong>' + groupName + '</strong></td>');
+                }
+            },
+            "initComplete": function () {
                 $('#operationTimeTable_wrapper > .row:first').remove();
             }
         });
-
     });
 
 

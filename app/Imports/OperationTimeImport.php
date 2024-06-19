@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\OperationTime;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithMappedCells;
 
@@ -16,15 +17,14 @@ class OperationTimeImport implements WithMappedCells, ToModel
 
     public function mapping(): array
     {
-        $mapping = [
-            'line_id' => 'E2',
-        ];
+        $mapping = [];
 
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 50; $i++) {
             $mapping["id{$i}"] = "A" . ($i + 1);
-            $mapping["code{$i}"] = "B" . ($i + 1);
-            $mapping["quantity{$i}"] = "C" . ($i + 1);
-            $mapping["date{$i}"] = "D" . ($i + 1);
+            $mapping["option{$i}"] = "B" . ($i + 1);
+            $mapping["start{$i}"] = "C" . ($i + 1);
+            $mapping["finish{$i}"] = "D" . ($i + 1);
+            $mapping["status{$i}"] = "E" . ($i + 1);
         }
 
         return $mapping;
@@ -32,8 +32,33 @@ class OperationTimeImport implements WithMappedCells, ToModel
 
     public function model(array $row)
     {
-        return new OperationTime([
-            //
-        ]);
+        for ($i = 1; $i <= 50; $i++) {
+            $option = isset($row["option{$i}"]) ? strtolower($row["option{$i}"]) : null;
+            if ($option !== null) {
+                $ani = $option === "normal" ? 1 : ($option === "friday" ? 2 : 3);
+            }
+
+            if (!isset($row["id{$i}"])) {
+                $row["option{$i}"] = null;
+            } else {
+                $row["option{$i}"] = $ani ?? null;
+            }
+
+            // Periksa dan konversi waktu jika diperlukan
+            $row["start{$i}"] = isset($row["start{$i}"]) ? $this->excelTimeToString($row["start{$i}"]) : null;
+            $row["finish{$i}"] = isset($row["finish{$i}"]) ? $this->excelTimeToString($row["finish{$i}"]) : null;
+        }
+
+        dd($row);
+    }
+
+    private function excelTimeToString($value)
+    {
+        if (is_numeric($value)) {
+            $hours = floor($value * 24);
+            $minutes = round(($value * 1440) % 60);
+            return sprintf('%02d:%02d', $hours, $minutes);
+        }
+        return $value; // Jika bukan desimal, kembalikan nilai asli
     }
 }

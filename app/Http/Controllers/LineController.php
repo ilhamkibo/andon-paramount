@@ -16,34 +16,37 @@ class LineController extends Controller
     public function index()
     {
         $today = Carbon::today();
-        $operationTimes = OperationTime::where('option', 1)->get();
         $dt = Carbon::now();
-
-        if (request('date')) {
-            $dt = Carbon::createFromFormat('Y-m-d', request('date'));
-        }
-
-        $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
-        // Cek apakah bulan Hijriah adalah Ramadhan
-        if ($cekTanggal === 'Ramadan') {
-            $operationTimes = OperationTime::where('option', 3)->get();
-        } else {
-            $cekTanggal  = $dt->isoFormat('dddd');
-            if ($cekTanggal === 'Friday') {
-                $operationTimes = OperationTime::where('option', 2)->get();
-            } else {
-                $operationTimes = OperationTime::where('option', 1)->get();
+        $dataPlans = $this->getDataPlan($today);
+        if (count($dataPlans) === 0) {
+            if (request('date')) {
+                $dt = Carbon::createFromFormat('Y-m-d', request('date'));
             }
+
+            $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+            // Cek apakah bulan Hijriah adalah Ramadhan
+            if ($cekTanggal === 'Ramadan') {
+                $operationTimes = OperationTime::where('option', 3)->get();
+            } else {
+                $cekTanggal  = $dt->isoFormat('dddd');
+                if ($cekTanggal === 'Friday') {
+                    $operationTimes = OperationTime::where('option', 2)->get();
+                } else {
+                    $operationTimes = OperationTime::where('option', 1)->get();
+                }
+            }
+        } else {
+            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
         }
+
 
         // dd($operationTimes);
-        $dataPlans = $this->getDataPlan($today);
         $newDataPlans = $this->newDataPlan($dataPlans, $operationTimes);
         // dd(json_encode($dataPlans));
         $chartTime = $this->timeChart($operationTimes);
         $timeBreakModal = $this->modalBreak($operationTimes);
         // $dataActual = $this->getDataActual($dataPlans);
-        // dd($dataPlans);
+        // dd($chartTime);
         //array breaktimes
         $breakTimes = $this->calculateBreakTimes($operationTimes);
         $breakTimes1 = $breakTimes[0];
@@ -79,6 +82,28 @@ class LineController extends Controller
 
 
         return $dataPlans;
+    }
+
+    public function updateOperationTimePlanData(Request $request, $date)
+    {
+        $validated = $request->validate([
+            'opTime' => 'required|integer', // Adjust validation rules as necessary
+        ]);
+
+        // Retrieve the plans for the given date
+        $plans = Plan::where('date', $date)->get();
+        // Check if any plans are found for the given date
+        if ($plans->isEmpty()) {
+            return redirect()->back()->with('gagal', 'Data plan on that date is not found!');
+        }
+
+        // Update the operation time for each plan
+        foreach ($plans as $plan) {
+            $plan->time_option = $validated['opTime'];
+            $plan->save();
+        }
+
+        return redirect()->back()->with('sukses', 'Plan operation time updated successfully!');
     }
 
     private function handleDateLineRequest()
@@ -368,7 +393,27 @@ class LineController extends Controller
     {
 
         $plans = Plan::where('date', $dateReq)->get();
-        $operationTimes = OperationTime::all();
+        if (count($plans) === 0) {
+            $dt = Carbon::now();
+            if (request('date')) {
+                $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+            }
+
+            $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+            // Cek apakah bulan Hijriah adalah Ramadhan
+            if ($cekTanggal === 'Ramadan') {
+                $operationTimes = OperationTime::where('option', 3)->get();
+            } else {
+                $cekTanggal  = $dt->isoFormat('dddd');
+                if ($cekTanggal === 'Friday') {
+                    $operationTimes = OperationTime::where('option', 2)->get();
+                } else {
+                    $operationTimes = OperationTime::where('option', 1)->get();
+                }
+            }
+        } else {
+            $operationTimes = OperationTime::where('option', $plans[0]->time_option)->get();
+        }
         $newDataPlans = $this->newDataPlan($plans, $operationTimes);
 
         $logProductions = [];
@@ -385,8 +430,31 @@ class LineController extends Controller
     {
         $dateData = Carbon::parse($tanggal);
         $dataPlans = Plan::whereDate('date', $dateData)->get();
-        $operationTimes = OperationTime::all();
+
+        if (count($dataPlans) === 0) {
+            $dt = Carbon::now();
+            if (request('date')) {
+                $dt = Carbon::createFromFormat('Y-m-d', request('date'));
+            }
+
+            $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
+            // Cek apakah bulan Hijriah adalah Ramadhan
+            if ($cekTanggal === 'Ramadan') {
+                $operationTimes = OperationTime::where('option', 3)->get();
+            } else {
+                $cekTanggal  = $dt->isoFormat('dddd');
+                if ($cekTanggal === 'Friday') {
+                    $operationTimes = OperationTime::where('option', 2)->get();
+                } else {
+                    $operationTimes = OperationTime::where('option', 1)->get();
+                }
+            }
+        } else {
+            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
+        }
+
         $newDataPlans = $this->newDataPlan($dataPlans, $operationTimes);
+
 
         // Deklarasi variabel untuk menyimpan nilai jam, menit, dan detik
         $jamArray = [];

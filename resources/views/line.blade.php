@@ -58,6 +58,17 @@
 @section('content')
 
 <div class="container-fluid">
+    @if(session()->has('sukses'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('sukses') }}
+    </div>
+    @endif
+    @if(session()->has('gagal'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('gagal') }}
+    </div>
+    @endif
+
     <!-- Small boxes (Stat box) -->
     <section class="row justify-content-center">
         <div class="col-12">
@@ -181,11 +192,6 @@
                     value="{{ (!empty($dataPlans) && isset($dataPlans[0])) ? date('Y-m-d', strtotime($dataPlans[0]->date)) : '' }}"
                     class="mx-sm-3 form-control">
                 <button type="submit" class="btn btn-primary">Submit</button>
-
-                <!-- Button trigger modal -->
-                {{-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-                    Launch demo modal
-                </button> --}}
             </form>
         </div>
     </section>
@@ -204,12 +210,27 @@
                         <i class="fas fa-chart-line mr-1"></i>
                         @if (!empty($dataPlans) && isset($dataPlans[0]))
                         {{-- <span>Plan Production Line {{ $dataPlans[0]->line_id }} Chart</span> --}}
-                        <span>Plan Production Chart | <strong>{{ $operationTimes[0]->option == 1 ? "[Normal Day]" :
-                                ($operationTimes[0]->option
-                                == 2 ? "[Friday]" : "[Ramadan]") }}</strong> | <a
-                                href="line/{{ \Carbon\Carbon::parse($dataPlans[0]->date)->format('Y-m-d') }}">Details
-                                data <i class="fas fa-arrow-circle-right"></i></a>
-                        </span>
+                        <span class="mr-2">Plan Production Chart</span>
+                        <form
+                            action="{{ route('operationTimePlan.update', ['date' => request('date') ? request('date') : now()->format('Y-m-d')]) }}"
+                            method="POST" class="form-inline border-left border-right px-2">
+                            @csrf
+                            <div class="form-group mr-sm-2 mb-2">
+                                <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
+                                    name="opTime">
+                                    <option value="1" {{ $operationTimes[0]->option == 1 ? 'selected' : ''
+                                        }}>Normal Day</option>
+                                    <option value="2" {{ $operationTimes[0]->option == 2 ? 'selected' : ''
+                                        }}>Friday</option>
+                                    <option value="3" {{ $operationTimes[0]->option == 3 ? 'selected' : ''
+                                        }}>Ramadan</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary mb-2">Submit Change</button>
+                        </form>
+                        <a class="ml-2"
+                            href="line/{{ \Carbon\Carbon::parse($dataPlans[0]->date)->format('Y-m-d') }}">Details
+                            data <i class="fas fa-arrow-circle-right"></i></a>
                         @else
                         <span>Plan Production Chart </span>
                         @endif
@@ -278,6 +299,57 @@ $dataChartObject = json_encode($dataChartObject);
 @endsection
 
 @section('scripts')
+<script>
+    // Hanlde sukses and gagal alert
+// Menentukan waktu (dalam milidetik) setelah itu elemen akan disembunyikan
+ const waktuTampil = 2000; // 2 detik
+
+// Menemukan elemen-elemen yang ingin disembunyikan setelah waktu tertentu
+const suksesAlert = document.querySelector('.alert-success');
+const gagalAlert = document.querySelector('.alert-danger');
+
+// Fungsi untuk menyembunyikan elemen-elemen setelah waktu tertentu
+const sembunyikanElemen = (elemen) => {
+    if (elemen) {
+        elemen.style.display = 'none';
+    }
+};
+
+// Setelah waktu tertentu, panggil fungsi untuk menyembunyikan elemen-elemen
+setTimeout(() => {
+    sembunyikanElemen(suksesAlert);
+    sembunyikanElemen(gagalAlert);
+}, waktuTampil);
+</script>
+
+<script>
+    //Jquery change Operation time
+    // $(document).ready(function () {
+    //     // Mendengarkan perubahan pada elemen select
+    //     $('#opTime').on('change', function () {
+    //         // Mendapatkan nilai select yang dipilih
+    //         var selectedOption = $(this).val();
+
+    //         // Mengirim data ke server menggunakan AJAX
+    //         $.ajax({
+    //             url: "{{ route('operationTimePlan.update', ['date' => request('date') ? request('date') : now()->format('Y-m-d')]) }}",
+    //             method: 'POST',
+    //             data: {
+    //                 _token: $('input[name="_token"]').val(),
+    //                 opTime: selectedOption
+    //             },
+    //             success: function (response) {
+    //                 // Handle response jika diperlukan
+    //                 console.log(response);
+    //             },
+    //             error: function (xhr, status, error) {
+    //                 // Handle error jika diperlukan
+    //                 console.error(error);
+    //             }
+    //         });
+    //     });
+    // });
+</script>
 <script>
     const dataPlans = {!! $dataPlans ?? 'null' !!}; // Memasukkan data dari kontroler
     const breakTimes0 = {!! $breakTimes0 ?? 'null' !!}; // Memasukkan data dari kontroler
@@ -399,6 +471,7 @@ $dataChartObject = json_encode($dataChartObject);
                                     if (typeof chart.data.datasets[i].data[index].x === 'string' &&
                                         forTooltip1.some(time => chart.data.datasets[i].data[index].x.endsWith(time) || index == chart.data.datasets[i].data.length - 1)
                                     ) {
+
                                         const text = chart.data.datasets[i].data[index].y;
                                         const textWidth = chart.ctx.measureText(text).width;
     
@@ -559,7 +632,7 @@ $dataChartObject = json_encode($dataChartObject);
 
         function oneSecondFunction() {
             // Inisialisasi saat memuat halaman
-            checkBreakTime();
+            checkBreakTimeModal();
 
             // Lakukan permintaan ke rute untuk mengambil data terbaru
             axios.get(`api/get-latest-data/${tanggalSaja}`)
@@ -622,7 +695,7 @@ $dataChartObject = json_encode($dataChartObject);
 
         // console.log(timeBreakModal)
         
-        function checkBreakTime() {
+        function checkBreakTimeModal() {
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinutes = now.getMinutes();
