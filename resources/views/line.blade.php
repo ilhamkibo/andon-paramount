@@ -59,12 +59,12 @@
 
 <div class="container-fluid">
     @if(session()->has('sukses'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-success alert-sukses alert-dismissible fade show" role="alert">
         {{ session('sukses') }}
     </div>
     @endif
     @if(session()->has('gagal'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-gagal alert-dismissible fade show" role="alert">
         {{ session('gagal') }}
     </div>
     @endif
@@ -305,8 +305,8 @@ $dataChartObject = json_encode($dataChartObject);
  const waktuTampil = 2000; // 2 detik
 
 // Menemukan elemen-elemen yang ingin disembunyikan setelah waktu tertentu
-const suksesAlert = document.querySelector('.alert-success');
-const gagalAlert = document.querySelector('.alert-danger');
+const suksesAlert = document.querySelector('.alert-sukses');
+const gagalAlert = document.querySelector('.alert-gagal');
 
 // Fungsi untuk menyembunyikan elemen-elemen setelah waktu tertentu
 const sembunyikanElemen = (elemen) => {

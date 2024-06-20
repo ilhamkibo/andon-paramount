@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('plan_id');
             $table->string('model');
+            $table->string('status');
             $table->timestamps();
         });
     }

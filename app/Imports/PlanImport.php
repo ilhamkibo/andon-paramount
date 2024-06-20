@@ -34,9 +34,15 @@ class PlanImport implements WithMappedCells, ToModel
      *
      * @return void
      */
-    public function model(array $row): void
+    public function model(array $row)
     {
         $lineId = $row['line_id'];
+        $checkDate = Carbon::parse(gmdate('Y-m-d', ((int)$row["date1"] - 25569) * 86400));
+        $plans = Plan::where('date', $checkDate)->get();
+        if ($plans->isNotEmpty()) {
+            // Handle redirection in the calling context
+            throw new \Exception("Data plan for that date already exists! Please delete the data first.");
+        }
 
         for ($i = 1; $i <= 6; $i++) {
             $id = $row["id{$i}"];
@@ -47,6 +53,7 @@ class PlanImport implements WithMappedCells, ToModel
             if ($id && $code && $quantity && $date && $lineId) {
                 $dateR = Carbon::parse(gmdate('Y-m-d', ((int)$date - 25569) * 86400));
                 $bedModel = BedModels::where('name', $code)->first();
+
 
                 if ($bedModel) {
                     Plan::updateOrInsert(

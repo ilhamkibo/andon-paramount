@@ -391,7 +391,6 @@ class LineController extends Controller
 
     public function show($dateReq)
     {
-
         $plans = Plan::where('date', $dateReq)->get();
         if (count($plans) === 0) {
             $dt = Carbon::now();

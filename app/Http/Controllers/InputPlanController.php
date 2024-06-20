@@ -381,21 +381,31 @@ class InputPlanController extends Controller
 
     public function importPlan(Request $request)
     {
-
+        // Validate the request to ensure a file is provided and it's of the correct type
         $request->validate([
             'fileExcel' => 'required|mimes:xlsx,xls,csv'
         ]);
 
-        // Menangani request jika validasi berhasil
+        // Check if the file is present in the request
         if ($request->hasFile('fileExcel')) {
             $file = $request->file('fileExcel');
-            Excel::import(new PlanImport, $file);
-            return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
+
+            try {
+                // Import the file using the PlanImport class
+                Excel::import(new PlanImport, $file);
+
+                // Redirect to the input plan route with a success message
+                return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
+            } catch (\Exception $e) {
+                // Redirect back with an error message if there's an exception during import
+                return redirect()->back()->with('gagal', 'Error during file import: ' . $e->getMessage());
+            }
         }
 
-        // Redirect back with error if file is not present
+        // Redirect back with an error message if the file is not found
         return redirect()->back()->with('gagal', 'File tidak ditemukan.');
     }
+
 
     public function importTime(Request $request)
     {

@@ -33,9 +33,9 @@ class OperationTimeImport implements WithMappedCells, ToModel
     public function model(array $row)
     {
         for ($i = 1; $i <= 50; $i++) {
-            $option = isset($row["option{$i}"]) ? strtolower($row["option{$i}"]) : null;
-            if ($option !== null) {
-                $ani = $option === "normal" ? 1 : ($option === "friday" ? 2 : 3);
+            $options = isset($row["option{$i}"]) ? strtolower($row["option{$i}"]) : null;
+            if ($options !== null) {
+                $ani = $options === "normal day" ? 1 : ($options === "friday" ? 2 : 3);
             }
 
             if (!isset($row["id{$i}"])) {
@@ -44,12 +44,32 @@ class OperationTimeImport implements WithMappedCells, ToModel
                 $row["option{$i}"] = $ani ?? null;
             }
 
+            $row["status{$i}"] = isset($row["status{$i}"]) ? (strtolower($row["status{$i}"]) == "work" ? 1 : 2) : null;
+
             // Periksa dan konversi waktu jika diperlukan
             $row["start{$i}"] = isset($row["start{$i}"]) ? $this->excelTimeToString($row["start{$i}"]) : null;
             $row["finish{$i}"] = isset($row["finish{$i}"]) ? $this->excelTimeToString($row["finish{$i}"]) : null;
-        }
+            $id =  $row["id{$i}"];
+            $option =  $row["option{$i}"];
+            $finish =  $row["finish{$i}"];
+            $start =  $row["start{$i}"];
+            $status =  $row["status{$i}"];
 
-        dd($row);
+            if ($id && $option && $finish && $start && $status) {
+                OperationTime::updateOrInsert(
+                    [
+                        'id' => $id
+                    ],
+                    [
+                        'option' => $option,
+                        'start' => $start,
+                        'finish' => $finish,
+                        'status' => $status
+                    ]
+                );
+            }
+        }
+        // dd($row);
     }
 
     private function excelTimeToString($value)
