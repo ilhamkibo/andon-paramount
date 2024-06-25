@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\OperationName;
 use App\Models\OperationTime;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -19,29 +20,40 @@ class OperationTimeImport implements WithMappedCells, ToModel
     {
         $mapping = [];
 
-        for ($i = 1; $i <= 50; $i++) {
-            $mapping["id{$i}"] = "A" . ($i + 1);
-            $mapping["option{$i}"] = "B" . ($i + 1);
-            $mapping["start{$i}"] = "C" . ($i + 1);
-            $mapping["finish{$i}"] = "D" . ($i + 1);
-            $mapping["status{$i}"] = "E" . ($i + 1);
+        for ($i = 1; $i <= 1003; $i++) {
+            $mapping["id{$i}"] = "A" . ($i + 3);
+            $mapping["name_day_operation{$i}"] = "B" . ($i + 3);
+            $mapping["start{$i}"] = "C" . ($i + 3);
+            $mapping["finish{$i}"] = "D" . ($i + 3);
+            $mapping["status{$i}"] = "E" . ($i + 3);
         }
-
         return $mapping;
     }
 
     public function model(array $row)
     {
-        for ($i = 1; $i <= 50; $i++) {
-            $options = isset($row["option{$i}"]) ? strtolower($row["option{$i}"]) : null;
+        $name_id = 0;
+
+        for ($i = 1; $i <= 1003; $i++) {
+            $options = isset($row["name_day_operation{$i}"]) ? $row["name_day_operation{$i}"] : null;
             if ($options !== null) {
-                $ani = $options === "normal day" ? 1 : ($options === "friday" ? 2 : 3);
+                $name_id = $name_id + 1;
+                $nama_waktu = $options;
+                OperationName::updateOrInsert(
+                    [
+                        'id' => $name_id
+                    ],
+                    [
+                        'name' => $nama_waktu,
+                    ]
+                );
             }
 
+
             if (!isset($row["id{$i}"])) {
-                $row["option{$i}"] = null;
+                $row["name_day_operation{$i}"] = null;
             } else {
-                $row["option{$i}"] = $ani ?? null;
+                $row["name_day_operation{$i}"] = $name_id ?? null;
             }
 
             $row["status{$i}"] = isset($row["status{$i}"]) ? (strtolower($row["status{$i}"]) == "work" ? 1 : 2) : null;
@@ -50,7 +62,7 @@ class OperationTimeImport implements WithMappedCells, ToModel
             $row["start{$i}"] = isset($row["start{$i}"]) ? $this->excelTimeToString($row["start{$i}"]) : null;
             $row["finish{$i}"] = isset($row["finish{$i}"]) ? $this->excelTimeToString($row["finish{$i}"]) : null;
             $id =  $row["id{$i}"];
-            $option =  $row["option{$i}"];
+            $option =  $row["name_day_operation{$i}"];
             $finish =  $row["finish{$i}"];
             $start =  $row["start{$i}"];
             $status =  $row["status{$i}"];
@@ -61,7 +73,7 @@ class OperationTimeImport implements WithMappedCells, ToModel
                         'id' => $id
                     ],
                     [
-                        'option' => $option,
+                        'name_id' => $option,
                         'start' => $start,
                         'finish' => $finish,
                         'status' => $status

@@ -9,5 +9,10 @@ class OperationTime extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['start', 'finish', 'status'];
+    protected $fillable = ['start', 'finish', 'status', 'name_id'];
+
+    public function operation_name()
+    {
+        return $this->belongsTo(OperationName::class, 'name_id', 'id');
+    }
 }

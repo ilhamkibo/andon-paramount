@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Imports\BedModelsImport;
 use App\Imports\OperationTimeImport;
 use App\Imports\PlanImport;
+use App\Models\OperationName;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Calculation\Engine\Operands\Operand;
 
@@ -26,28 +27,9 @@ class InputPlanController extends Controller
         // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
 
         $plans = $this->getDataPlan();
-        // if (count($plans) === 0) {
-        //     $dt = Carbon::now();
-        //     if (request('date')) {
-        //         $dt = Carbon::createFromFormat('Y-m-d', request('date'));
-        //     }
 
-        //     $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
-        //     // Cek apakah bulan Hijriah adalah Ramadhan
-        //     if ($cekTanggal === 'Ramadan') {
-        //         $operationTimes = OperationTime::where('option', 3)->get();
-        //     } else {
-        //         $cekTanggal  = $dt->isoFormat('dddd');
-        //         if ($cekTanggal === 'Friday') {
-        //             $operationTimes = OperationTime::where('option', 2)->get();
-        //         } else {
-        //             $operationTimes = OperationTime::where('option', 1)->get();
-        //         }
-        //     }
-        // } else {
-        //     $operationTimes = OperationTime::where('option', $plans[0]->time_option)->get();
-        // }
-        $operationTimes = OperationTime::orderBy('option', 'asc')->get();
+        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->get();
+        $operationNames = OperationName::all();
         // dd($operationTimes);
         $lines = Line::all();
         $bedModels = BedModels::orderBy('name', 'asc')->get();
@@ -56,6 +38,7 @@ class InputPlanController extends Controller
             'lines' => $lines,
             'bedModels' => $bedModels,
             'operationTimes' => $operationTimes,
+            'operationNames' => $operationNames,
         ]);
     }
 
@@ -75,7 +58,7 @@ class InputPlanController extends Controller
         // dd($dataPlans);
 
         if (count($dataPlans) !== 0) {
-            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
+            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->get();
             $resultSet = [];
             $previousOperationEnd = '';
             foreach ($dataPlans as $key => $dataPlan) {
@@ -297,25 +280,42 @@ class InputPlanController extends Controller
 
     public function updateOperationTimeData(Request $request, $id)
     {
-        $operationTimes = OperationTime::findOrFail($id);
-        // Validasi data input jika diperlukan
-        $request->validate([
-            'start' => 'required',
-            'finish' => 'required',
-            'status' => 'required',
-            // Tambahkan validasi untuk field lainnya
+
+        $validatedData = $request->validate([
+            'nama_operation' => 'required|string',
+            'start.*' => 'required',
+            'finish.*' => 'required',
+            'status.*' => 'required',
         ]);
 
-        // Update data
-        $operationTimes->update([
-            'start' => $request->input('start'),
-            'finish' => $request->input('finish'),
-            'status' => $request->input('status')
-            // Update field lainnya
-        ]);
-        return redirect('/input-plan')->with('sukses', 'Operation time data updated successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        // dd($validatedData);
+        // Ambil operationNames dan operationTimes
+        $operationNames = OperationName::findOrFail($id);
 
+        $operationNames->update([
+            'name' => $validatedData['nama_operation'],
+        ]);
+
+        $operationTimes = OperationTime::where('name_id', $id)->get();
+
+        // Iterasi melalui operationTimes untuk update masing-masing record
+        foreach ($operationTimes as $index => $operationTime) {
+            $updatedData = [
+                'start' => $validatedData['start'][$index],
+                'finish' => $validatedData['finish'][$index],
+                'status' => $validatedData['status'][$index],
+                // Tambahkan field lainnya sesuai kebutuhan
+            ];
+
+            // Update data
+            $operationTime->update($updatedData);
+        }
+
+        // Redirect dengan pesan sukses
+        return redirect('/input-plan')->with('sukses', 'Operation time data updated successfully!');
     }
+
+
 
     public function destroyMasterData($id)
     {

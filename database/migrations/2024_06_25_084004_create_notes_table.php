@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('operation_times', function (Blueprint $table) {
+        Schema::create('notes', function (Blueprint $table) {
             $table->id();
-            $table->integer('name_id');
-            $table->timeTz('start', $precision = 0)->nullable();
-            $table->timeTz('finish', $precision = 0)->nullable();
-            $table->integer('status')->nullable();
+            $table->integer('production_id');
+            $table->string('operator');
+            $table->string('problem');
+            $table->string('reason');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('operation_times');
+        Schema::dropIfExists('notes');
     }
 };

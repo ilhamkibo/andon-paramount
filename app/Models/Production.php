@@ -16,4 +16,8 @@ class Production extends Model
     {
         return $this->belongsTo(Plan::class);
     }
+    public function note()
+    {
+        return $this->hasMany(Note::class);
+    }
 }

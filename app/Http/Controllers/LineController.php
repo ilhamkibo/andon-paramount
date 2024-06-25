@@ -26,17 +26,17 @@ class LineController extends Controller
             $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
             // Cek apakah bulan Hijriah adalah Ramadhan
             if ($cekTanggal === 'Ramadan') {
-                $operationTimes = OperationTime::where('option', 3)->get();
+                $operationTimes = OperationTime::where('name_id', 3)->get();
             } else {
                 $cekTanggal  = $dt->isoFormat('dddd');
                 if ($cekTanggal === 'Friday') {
-                    $operationTimes = OperationTime::where('option', 2)->get();
+                    $operationTimes = OperationTime::where('name_id', 2)->get();
                 } else {
-                    $operationTimes = OperationTime::where('option', 1)->get();
+                    $operationTimes = OperationTime::where('name_id', 1)->get();
                 }
             }
         } else {
-            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
+            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->get();
         }
 
 
@@ -401,17 +401,17 @@ class LineController extends Controller
             $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
             // Cek apakah bulan Hijriah adalah Ramadhan
             if ($cekTanggal === 'Ramadan') {
-                $operationTimes = OperationTime::where('option', 3)->get();
+                $operationTimes = OperationTime::where('name_id', 3)->get();
             } else {
                 $cekTanggal  = $dt->isoFormat('dddd');
                 if ($cekTanggal === 'Friday') {
-                    $operationTimes = OperationTime::where('option', 2)->get();
+                    $operationTimes = OperationTime::where('name_id', 2)->get();
                 } else {
-                    $operationTimes = OperationTime::where('option', 1)->get();
+                    $operationTimes = OperationTime::where('name_id', 1)->get();
                 }
             }
         } else {
-            $operationTimes = OperationTime::where('option', $plans[0]->time_option)->get();
+            $operationTimes = OperationTime::where('name_id', $plans[0]->time_option)->get();
         }
         $newDataPlans = $this->newDataPlan($plans, $operationTimes);
 
@@ -439,17 +439,17 @@ class LineController extends Controller
             $cekTanggal  = $dt->toHijri()->isoFormat('MMMM');
             // Cek apakah bulan Hijriah adalah Ramadhan
             if ($cekTanggal === 'Ramadan') {
-                $operationTimes = OperationTime::where('option', 3)->get();
+                $operationTimes = OperationTime::where('name_id', 3)->get();
             } else {
                 $cekTanggal  = $dt->isoFormat('dddd');
                 if ($cekTanggal === 'Friday') {
-                    $operationTimes = OperationTime::where('option', 2)->get();
+                    $operationTimes = OperationTime::where('name_id', 2)->get();
                 } else {
-                    $operationTimes = OperationTime::where('option', 1)->get();
+                    $operationTimes = OperationTime::where('name_id', 1)->get();
                 }
             }
         } else {
-            $operationTimes = OperationTime::where('option', $dataPlans[0]->time_option)->get();
+            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->get();
         }
 
         $newDataPlans = $this->newDataPlan($dataPlans, $operationTimes);

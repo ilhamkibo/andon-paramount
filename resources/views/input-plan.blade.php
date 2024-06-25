@@ -388,11 +388,12 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <table id="operationTimeTable" class="table text-center table-bordered my-0 table-hover">
+                    {{-- <table id="operationTimeTable" class="table text-center table-bordered my-0 table-hover">
                         <thead>
                             <tr>
                                 <th>No.</th>
                                 <th>Option</th>
+                                <th>Operation Name</th>
                                 <th>Start</th>
                                 <th>~</th>
                                 <th>Finish</th>
@@ -404,7 +405,8 @@
                             @foreach ($operationTimes as $item)
                             <tr>
                                 <td class="py-1 text-center align-middle">{{ $item->id }}</td>
-                                <td class="py-1 text-center align-middle">{{ $item->option }}</td>
+                                <td class="py-1 text-center align-middle">{{ $item->name_id }}</td>
+                                <td class="py-1 text-center align-middle">{{ $item->operation_name->name }}</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->start, 0, 5) }}</td>
                                 <td class="py-1 text-center align-middle">~</td>
                                 <td class="py-1 text-center align-middle">{{ substr($item->finish, 0, 5) }}</td>
@@ -510,7 +512,103 @@
                             </tr>
                             @endforeach
                         </tbody>
+                    </table> --}}
+                    <table class="table text-center table-bordered my-0 table-hover">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Operation Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($operationNames as $item)
+                            <tr>
+                                <td class="py-1 text-center align-middle">{{ $loop->iteration }}</td>
+                                <td class="py-1 text-center align-middle">{{ $item->name }}</td>
+                                <td class="py-1 text-center align-middle">
+                                    <button type="button" class="btn btn-info" data-toggle="modal"
+                                        data-target="#editOperationTimeModal{{ $item->id }}">Show</button>
+                                </td>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="editOperationTimeModal{{ $item->id }}" tabindex="-1"
+                                    role="dialog" aria-labelledby="editOperationTimeModalLabel{{ $item->id }}"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editOperationTimeModalLabel{{ $item->id }}">
+                                                    Operation Times for {{ $item->name }}</h5>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+
+                                                <form method="POST"
+                                                    action="{{ route('OperationTimeData.update', $item->id) }}">
+                                                    @csrf
+                                                    <!-- Assuming your update route uses PUT method, adjust if necessary -->
+                                                    <div class="form-group col-md-4">
+                                                        <label for="nama_operation">Name</label>
+                                                        <input step="300" required type="text" class="form-control"
+                                                            id="nama_operation" value="{{ $item->name }}"
+                                                            name="nama_operation">
+                                                    </div>
+
+                                                    @php $firstIteration = true; @endphp
+                                                    <!-- Tambahkan variabel untuk menandai iterasi pertama -->
+                                                    @foreach ($operationTimes->where('name_id',
+                                                    $item->id)->sortBy('start') as $operationTime)
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-4">
+                                                            @if ($firstIteration)
+                                                            <label for="start{{ $operationTime->id }}">Start</label>
+                                                            @endif
+                                                            <input step="300" required type="time" class="form-control"
+                                                                id="start{{ $operationTime->id }}"
+                                                                value="{{ $operationTime->start }}" name="start[]">
+                                                        </div>
+                                                        <div class="form-group col-md-4">
+                                                            @if ($firstIteration)
+                                                            <label for="finish{{ $operationTime->id }}">Finish</label>
+                                                            @endif
+                                                            <input step="300" required type="time" class="form-control"
+                                                                id="finish{{ $operationTime->id }}"
+                                                                value="{{ $operationTime->finish }}" name="finish[]">
+                                                        </div>
+                                                        <div class="form-group col-md-4">
+                                                            @if ($firstIteration)
+                                                            <label for="status{{ $operationTime->id }}">Status</label>
+                                                            @endif
+                                                            <select class="custom-select" name="status[]">
+                                                                <option value="1" {{ $operationTime->status == "1" ?
+                                                                    'selected' : '' }}>Work</option>
+                                                                <option value="2" {{ $operationTime->status == "2" ?
+                                                                    'selected' : '' }}>Break</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    @php $firstIteration = false; @endphp
+                                                    <!-- Setelah iterasi pertama, ubah variabel menjadi false -->
+                                                    @endforeach
+                                                    <button type="submit" class="btn btn-info">Submit</button>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Modal -->
+                            </tr>
+                            @endforeach
+                        </tbody>
                     </table>
+
+
+
                 </div>
                 <!-- /.card-body-->
             </div>
@@ -519,6 +617,7 @@
         <!-- bottom row -->
     </div>
     <!-- /.row (main row) -->
+
     <!-- Add Modal by Form -->
     <div class="modal fade" id="addDataModalByForm" tabindex="-1" role="dialog" aria-labelledby="addPlanProductionLabel"
         aria-hidden="true">
@@ -711,9 +810,9 @@
                             <label for="opTime">Operation Time</label>
                             <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
                                 name="opTime">
-                                <option value="1">Normal Day</option>
-                                <option value="2">Friday</option>
-                                <option value="3">Ramadan</option>
+                                @foreach ($operationNames as $item)
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="form-group">
@@ -1026,28 +1125,6 @@
 
     });
 
-    // $(function () {
-    //     $('#operationTimeTable').DataTable({
-    //         "paging": false,
-    //         "scrollY": "250px",
-    //         "scrollCollapse": true,
-    //         "lengthChange": true,
-    //         "searching": false,
-    //         "ordering": true,
-    //         "info": false,
-    //         "autoWidth": true,
-    //         "responsive": true,
-    //         buttons: [],
-    //         dom: "<'row'<'col-lg-2'l><'col-lg-5'B><'col-lg-5'f>>" +
-    //             "<'row'<'col-md-12'tr>>" +
-    //             "<'row'<'col-md-7'p>>",
-    //         initComplete: function () {
-    //             $('#operationTimeTable_wrapper > .row:first').remove();
-    //         }
-    //     });
-
-    // });
-
     $(document).ready(function() {
         $('#operationTimeTable').DataTable({
             "paging": false,
@@ -1060,26 +1137,14 @@
             "autoWidth": true,
             "responsive": true,
             "columnDefs": [
-                { "visible": false, "targets": 1 } // Sembunyikan kolom "option"
-            ],
-            "order": [[1, 'asc'], [2, 'asc']], // Urutkan berdasarkan "option" dan "start"
+                    { "visible": false, "targets": [1,2] } // Sembunyikan kolom "option"
+                ],
+            "order": [[1, 'asc'], [3, 'asc']], // Urutkan berdasarkan "Operation Name" dan "Start"
             "rowGroup": {
-                dataSrc: 1,
+                dataSrc: 2, // Kelompokkan berdasarkan "Operation Name"
                 startRender: function (rows, group) {
-                    let groupName = '';
-                    switch(group) {
-                        case '1':
-                            groupName = 'Normal Day';
-                            break;
-                        case '2':
-                            groupName = 'Friday';
-                            break;
-                        case '3':
-                            groupName = 'Ramadan';
-                            break;
-                    }
                     return $('<tr/>')
-                        .append('<td colspan="7" class="text-center"><strong>' + groupName + '</strong></td>');
+                        .append('<td colspan="8" class="text-center"><strong>' + group + '</strong></td>');
                 }
             },
             "initComplete": function () {
@@ -1087,7 +1152,6 @@
             }
         });
     });
-
 
     // Variabel global untuk melacak header yang diklik sebelumnya
     document.querySelectorAll('.sortable').forEach(function(th) {
