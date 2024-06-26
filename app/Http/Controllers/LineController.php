@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BedModels;
+use App\Models\OperationName;
 use App\Models\OperationTime;
 use App\Models\Plan;
 use App\Models\Production;
@@ -15,6 +16,7 @@ class LineController extends Controller
 
     public function index()
     {
+        $operationNames = OperationName::all();
         $today = Carbon::today();
         $dt = Carbon::now();
         $dataPlans = $this->getDataPlan($today);
@@ -36,7 +38,7 @@ class LineController extends Controller
                 }
             }
         } else {
-            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->get();
+            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->whereNotNull('start')->get();
         }
 
 
@@ -60,7 +62,7 @@ class LineController extends Controller
         //array untuk breaktime dan menghitung value produksi setiap 5 menit
         // $breakValue = [];
 
-        return view('line', compact('dataChartObject', 'operationTimes', 'timeBreakModal', 'chartTime', 'newDataPlans', 'dataPlans', 'breakTimes0', 'breakTimes1', 'forTooltip0', 'forTooltip1'))->with('message', $this->message);
+        return view('line', compact('dataChartObject', 'operationNames', 'operationTimes', 'timeBreakModal', 'chartTime', 'newDataPlans', 'dataPlans', 'breakTimes0', 'breakTimes1', 'forTooltip0', 'forTooltip1'))->with('message', $this->message);
     }
 
     private function getDataPlan($today)
@@ -79,8 +81,6 @@ class LineController extends Controller
             }
         }
 
-
-
         return $dataPlans;
     }
 
@@ -89,9 +89,10 @@ class LineController extends Controller
         $validated = $request->validate([
             'opTime' => 'required|integer', // Adjust validation rules as necessary
         ]);
-
+        // dd($validated);
         // Retrieve the plans for the given date
         $plans = Plan::where('date', $date)->get();
+        // dd($plans);
         // Check if any plans are found for the given date
         if ($plans->isEmpty()) {
             return redirect()->back()->with('gagal', 'Data plan on that date is not found!');
@@ -103,6 +104,7 @@ class LineController extends Controller
             $plan->save();
         }
 
+        // Redirect back with success message
         return redirect()->back()->with('sukses', 'Plan operation time updated successfully!');
     }
 

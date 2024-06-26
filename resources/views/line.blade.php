@@ -218,12 +218,11 @@
                             <div class="form-group mr-sm-2 mb-2">
                                 <select required class="form-control @error('opTime') is-invalid @enderror" id="opTime"
                                     name="opTime">
-                                    <option value="1" {{ $operationTimes[0]->option == 1 ? 'selected' : ''
-                                        }}>Normal Day</option>
-                                    <option value="2" {{ $operationTimes[0]->option == 2 ? 'selected' : ''
-                                        }}>Friday</option>
-                                    <option value="3" {{ $operationTimes[0]->option == 3 ? 'selected' : ''
-                                        }}>Ramadan</option>
+                                    @foreach ($operationNames as $item)
+                                    <option value="{{ $item->id }}" {{ $operationTimes[0]->name_id == $item->id ?
+                                        'selected' : ''
+                                        }}>{{ $item->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary mb-2">Submit Change</button>
@@ -506,7 +505,7 @@ setTimeout(() => {
                 responsive: true,
                 plugins: {
                     tooltip: {
-                        enabled: false
+                        enabled: true
                     },
                     legend: {
                         display: true,

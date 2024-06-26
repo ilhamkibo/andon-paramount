@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\OperationName;
 use App\Models\OperationTime;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithMappedCells;
 
@@ -33,7 +34,11 @@ class OperationTimeImport implements WithMappedCells, ToModel
     public function model(array $row)
     {
         $name_id = 0;
-
+        DB::table('operation_times')->update([
+            'start' => null,
+            'finish' => null,
+            'status' => null
+        ]);
         for ($i = 1; $i <= 1003; $i++) {
             $options = isset($row["name_day_operation{$i}"]) ? $row["name_day_operation{$i}"] : null;
             if ($options !== null) {
@@ -81,6 +86,9 @@ class OperationTimeImport implements WithMappedCells, ToModel
                 );
             }
         }
+
+        DB::table('operation_times')->whereNull('start')->whereNull('finish')->delete();
+
         // dd($row);
     }
 

@@ -388,131 +388,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    {{-- <table id="operationTimeTable" class="table text-center table-bordered my-0 table-hover">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Option</th>
-                                <th>Operation Name</th>
-                                <th>Start</th>
-                                <th>~</th>
-                                <th>Finish</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($operationTimes as $item)
-                            <tr>
-                                <td class="py-1 text-center align-middle">{{ $item->id }}</td>
-                                <td class="py-1 text-center align-middle">{{ $item->name_id }}</td>
-                                <td class="py-1 text-center align-middle">{{ $item->operation_name->name }}</td>
-                                <td class="py-1 text-center align-middle">{{ substr($item->start, 0, 5) }}</td>
-                                <td class="py-1 text-center align-middle">~</td>
-                                <td class="py-1 text-center align-middle">{{ substr($item->finish, 0, 5) }}</td>
-                                @if ($item->status == 1)
-                                <td class="py-1 text-center align-middle text-primary"><strong>Work</strong></td>
-                                @else
-                                <td class="py-1 text-center align-middle text-danger"><strong>Break</strong></td>
-                                @endif
-                                <td class="py-1 text-center align-middle">
-                                    <button type="button" class="btn btn-info" data-toggle="modal"
-                                        data-target="#editOperationTimeModal{{ $item->id }}">Edit</button>
-                                    <button type="button" class="btn btn-danger" data-toggle="modal"
-                                        data-target="#deleteOperationTimeModal{{ $item->id }}">Delete</button>
-                                </td>
 
-
-                                <!-- Edit Modal -->
-                                <div class="modal fade" id="editOperationTimeModal{{ $item->id }}" tabindex="-1"
-                                    role="dialog" aria-labelledby="editOperationTimeModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="editOperationTimeModalLabel">Edit Data [{{
-                                                    $item->option == 1 ? 'Normal Day' : ($item->option == 2 ? 'Friday' :
-                                                    "Ramadan") }}] </h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <form action="{{ route('OperationTimeData.update', $item->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                @method('post')
-                                                <div class="modal-body">
-                                                    <!-- Your edit form goes here -->
-                                                    <!-- Example: -->
-                                                    <div class="form-group">
-                                                        <label for="start">Start</label>
-                                                        <input step="300" required type="time" class="form-control"
-                                                            id="start" value={{ $item->start }} name="start">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="finish">Finish</label>
-                                                        <input step="300" required type="time" class="form-control"
-                                                            id="finish" value={{ $item->finish }} name="finish">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="status">status</label>
-                                                        <select required
-                                                            class="form-control @error('status') is-invalid @enderror"
-                                                            id="status" name="status">
-                                                            <option value="1" {{ $item->status == 1 ? 'selected' : ''
-                                                                }}>Work</option>
-                                                            <option value="2" {{ $item->status == 2 ? 'selected' : ''
-                                                                }}>Break</option>
-                                                        </select>
-                                                    </div>
-                                                    <!-- Add other form fields as needed -->
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-primary">Save
-                                                        changes</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Edit Modal -->
-                                <!-- Delete Modal -->
-                                <div class="modal fade" id="deleteOperationTimeModal{{ $item->id }}" tabindex="-1"
-                                    role="dialog" aria-labelledby="deleteOperationTimeModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteOperationTimeModalLabel">Delete
-                                                    Confirmation
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-                                                Are you sure you want to delete this item?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-dismiss="modal">Cancel</button>
-                                                <form action="{{ route('OperationTimeData.destroy', $item->id) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('delete')
-                                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Delete Modal -->
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table> --}}
                     <table class="table text-center table-bordered my-0 table-hover">
                         <thead>
                             <tr>
@@ -530,84 +406,123 @@
                                     <button type="button" class="btn btn-info" data-toggle="modal"
                                         data-target="#editOperationTimeModal{{ $item->id }}">Show</button>
                                 </td>
+                            </tr>
 
-                                <!-- Modal -->
-                                <div class="modal fade" id="editOperationTimeModal{{ $item->id }}" tabindex="-1"
-                                    role="dialog" aria-labelledby="editOperationTimeModalLabel{{ $item->id }}"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="editOperationTimeModalLabel{{ $item->id }}">
-                                                    Operation Times for {{ $item->name }}</h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-
-                                                <form method="POST"
-                                                    action="{{ route('OperationTimeData.update', $item->id) }}">
-                                                    @csrf
-                                                    <!-- Assuming your update route uses PUT method, adjust if necessary -->
-                                                    <div class="form-group col-md-4">
-                                                        <label for="nama_operation">Name</label>
-                                                        <input step="300" required type="text" class="form-control"
-                                                            id="nama_operation" value="{{ $item->name }}"
-                                                            name="nama_operation">
+                            <!-- Modal -->
+                            <div class="modal fade" id="editOperationTimeModal{{ $item->id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="editOperationTimeModalLabel{{ $item->id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editOperationTimeModalLabel{{ $item->id }}">
+                                                Operation Times for {{ $item->name }}
+                                            </h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST"
+                                                action="{{ route('OperationTimeData.update', $item->id) }}">
+                                                @csrf
+                                                <div class="form-group col-md-4">
+                                                    <label for="nama_operation">Name</label>
+                                                    <input step="300" required type="text" class="form-control"
+                                                        id="nama_operation" value="{{ $item->name }}"
+                                                        name="nama_operation">
+                                                </div>
+                                                @php $firstIteration = true; @endphp
+                                                <!-- Iterate through operation times -->
+                                                @foreach ($operationTimes->where('name_id', $item->id)->sortBy('start')
+                                                as $operationTime)
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-1">
+                                                        @if ($firstIteration)
+                                                        <label>No</label>
+                                                        @endif
+                                                        <h6 class="mt-2">{{ $loop->iteration }}</h6>
                                                     </div>
-
-                                                    @php $firstIteration = true; @endphp
-                                                    <!-- Tambahkan variabel untuk menandai iterasi pertama -->
-                                                    @foreach ($operationTimes->where('name_id',
-                                                    $item->id)->sortBy('start') as $operationTime)
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-4">
-                                                            @if ($firstIteration)
-                                                            <label for="start{{ $operationTime->id }}">Start</label>
-                                                            @endif
-                                                            <input step="300" required type="time" class="form-control"
-                                                                id="start{{ $operationTime->id }}"
-                                                                value="{{ $operationTime->start }}" name="start[]">
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            @if ($firstIteration)
-                                                            <label for="finish{{ $operationTime->id }}">Finish</label>
-                                                            @endif
-                                                            <input step="300" required type="time" class="form-control"
-                                                                id="finish{{ $operationTime->id }}"
-                                                                value="{{ $operationTime->finish }}" name="finish[]">
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            @if ($firstIteration)
-                                                            <label for="status{{ $operationTime->id }}">Status</label>
-                                                            @endif
-                                                            <select class="custom-select" name="status[]">
-                                                                <option value="1" {{ $operationTime->status == "1" ?
-                                                                    'selected' : '' }}>Work</option>
-                                                                <option value="2" {{ $operationTime->status == "2" ?
-                                                                    'selected' : '' }}>Break</option>
-                                                            </select>
+                                                    <div class="form-group col-md-3">
+                                                        @if ($firstIteration)
+                                                        <label for="start{{ $operationTime->id }}">Start</label>
+                                                        @endif
+                                                        <input step="300" required type="time" class="form-control"
+                                                            id="start{{ $operationTime->id }}"
+                                                            value="{{ $operationTime->start }}" name="start[]">
+                                                    </div>
+                                                    <div class="form-group col-md-3">
+                                                        @if ($firstIteration)
+                                                        <label for="finish{{ $operationTime->id }}">Finish</label>
+                                                        @endif
+                                                        <input step="300" required type="time" class="form-control"
+                                                            id="finish{{ $operationTime->id }}"
+                                                            value="{{ $operationTime->finish }}" name="finish[]">
+                                                    </div>
+                                                    <div class="form-group col-md-2">
+                                                        @if ($firstIteration)
+                                                        <label for="status{{ $operationTime->id }}">Status</label>
+                                                        @endif
+                                                        <select class="custom-select" name="status[]">
+                                                            <option value="1" {{ $operationTime->status == "1" ?
+                                                                'selected' : '' }}>Work</option>
+                                                            <option value="2" {{ $operationTime->status == "2" ?
+                                                                'selected' : '' }}>Break</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group col-md-2">
+                                                        @if ($firstIteration)
+                                                        <label>Action</label>
+                                                        @endif
+                                                        <div>
+                                                            <button type="button" class="btn btn-danger"
+                                                                data-toggle="modal"
+                                                                data-target="#deleteModal{{ $operationTime->id }}">Delete</button>
                                                         </div>
                                                     </div>
-                                                    @php $firstIteration = false; @endphp
-                                                    <!-- Setelah iterasi pertama, ubah variabel menjadi false -->
-                                                    @endforeach
-                                                    <button type="submit" class="btn btn-info">Submit</button>
-                                                </form>
-
-                                            </div>
+                                                </div>
+                                                @php $firstIteration = false; @endphp
+                                                @endforeach
+                                                <button type="submit" class="btn btn-info">Submit</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- End Modal -->
-                            </tr>
+                            </div>
+
+                            <!-- Delete Confirmation Modals -->
+                            @foreach ($operationTimes->where('name_id', $item->id)->sortBy('start') as $operationTime)
+                            <div class="modal fade" id="deleteModal{{ $operationTime->id }}" tabindex="-1" role="dialog"
+                                aria-labelledby="deleteModalLabel{{ $operationTime->id }}" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ $operationTime->id }}">Delete
+                                                Confirmation</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete this operation time?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form method="POST"
+                                                action="{{ route('OperationTimeData.destroy', $operationTime->id) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
                             @endforeach
                         </tbody>
                     </table>
-
-
 
                 </div>
                 <!-- /.card-body-->
@@ -617,6 +532,7 @@
         <!-- bottom row -->
     </div>
     <!-- /.row (main row) -->
+
 
     <!-- Add Modal by Form -->
     <div class="modal fade" id="addDataModalByForm" tabindex="-1" role="dialog" aria-labelledby="addPlanProductionLabel"
@@ -801,7 +717,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="/store-operation" method="post">
+                <form action="{{ route('store-operation') }}" method="post">
                     @csrf
                     <div class="modal-body">
                         <!-- Your edit form goes here -->
@@ -1016,7 +932,7 @@
         </div>
     </div>
     <!-- End Option Modal -->
-    <!-- Modal -->
+    <!-- Bulk Delete Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog"
         aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">

@@ -28,7 +28,7 @@ class InputPlanController extends Controller
 
         $plans = $this->getDataPlan();
 
-        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->get();
+        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->whereNotNull('start')->get();
         $operationNames = OperationName::all();
         // dd($operationTimes);
         $lines = Line::all();
@@ -196,8 +196,26 @@ class InputPlanController extends Controller
             'opTime' => ['required'],
         ]);
 
-        // dd($validatedData);
-        OperationTime::create($validatedData);
+        $lastId = OperationTime::where('name_id', $validatedData['opTime'])
+            ->whereNull('start')
+            ->orderBy('id', 'desc')
+            ->pluck('id')
+            ->first();
+        if (!$lastId) {
+            $lastId = OperationTime::where('name_id', $validatedData['opTime'])->orderBy('id', 'desc')->pluck('id')->first() + 1;
+        }
+        OperationTime::updateOrInsert(
+            [
+                'id' => $lastId
+            ],
+            [
+                'name_id' => $validatedData['opTime'],
+                'start' => $validatedData['start'],
+                'finish' => $validatedData['finish'],
+                'status' => $validatedData['status']
+            ]
+        );
+
 
         return redirect('/input-plan')->with('sukses', 'Insert operation time success!'); // Ganti 'route_name' dengan nama rute yang sesuai.
     }
@@ -304,7 +322,6 @@ class InputPlanController extends Controller
                 'start' => $validatedData['start'][$index],
                 'finish' => $validatedData['finish'][$index],
                 'status' => $validatedData['status'][$index],
-                // Tambahkan field lainnya sesuai kebutuhan
             ];
 
             // Update data
@@ -343,9 +360,16 @@ class InputPlanController extends Controller
     public function destroyOperationTimeData($id)
     {
         $operationTime = OperationTime::findOrFail($id);
-
+        // dd($operationTime);
         // Update data
-        $operationTime->delete();
+        // $operationTime->delete();
+        // Set start and finish to null
+        $operationTime->start = null;
+        $operationTime->finish = null;
+        $operationTime->status = null;
+
+        // Save the changes
+        $operationTime->save();
         return redirect('/input-plan')->with('sukses', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
     }
 
