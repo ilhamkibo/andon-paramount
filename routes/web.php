@@ -27,6 +27,7 @@ Route::post('/import-plan-file', [InputPlanController::class, 'importPlan'])->na
 Route::post('/import-time-file', [InputPlanController::class, 'importTime'])->name('file.import-time');
 Route::get('/input-plan', [InputPlanController::class, 'index'])->name('input-plan');
 Route::post('/store-data', [InputPlanController::class, 'store'])->name('store-data');
+Route::post('/store-data-time', [InputPlanController::class, 'storeDataTime'])->name('store-data-time');
 Route::post('/masterData/{id}', [InputPlanController::class, 'addMasterData'])->name('masterData.add');
 Route::put('/masterData/{id}', [InputPlanController::class, 'destroyMasterData'])->name('masterData.destroy');
 Route::post('/operationTimeData/{id}', [InputPlanController::class, 'updateOperationTimeData'])->name('OperationTimeData.update');

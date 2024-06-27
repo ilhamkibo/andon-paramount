@@ -187,6 +187,18 @@ class InputPlanController extends Controller
         }
     }
 
+    public function storeDataTime(Request $request)
+    {
+        $validated = $request->validate([
+            'operation_name' => 'required',
+            'number' => 'required|array',
+            'start' => 'required|array',
+            'finish' => 'required|array',
+            'status' => 'required|array'
+        ]);
+
+        dd($validated);
+    }
     public function storeOperationtime(Request $request)
     {
         $validatedData = $request->validate([
