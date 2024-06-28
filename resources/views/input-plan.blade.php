@@ -29,6 +29,26 @@
         width: 150px;
         /* Adjust this value as needed to match your table structure */
     }
+
+    .form-row-container {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Prevent horizontal scroll */
+
+    }
+
+    .form-row-container .form-row {
+        display: flex;
+    }
+
+    .form-row-container .form-group {
+        flex: 1;
+    }
+
+    .form-row-container py-2 .form-group label {
+        display: block;
+    }
 </style>
 @endsection
 
@@ -436,7 +456,7 @@
                             <div class="modal fade" id="editOperationTimeModal{{ $item->id }}" tabindex="-1"
                                 role="dialog" aria-labelledby="editOperationTimeModalLabel{{ $item->id }}"
                                 aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="editOperationTimeModalLabel{{ $item->id }}">
@@ -457,57 +477,61 @@
                                                         name="nama_operation">
                                                 </div>
                                                 @php $firstIteration = true; @endphp
-                                                <!-- Iterate through operation times -->
-                                                @foreach ($operationTimes->where('name_id', $item->id)->sortBy('start')
-                                                as $operationTime)
-                                                <div class="form-row">
-                                                    <div class="form-group col-md-1">
-                                                        @if ($firstIteration)
-                                                        <label>No</label>
-                                                        @endif
-                                                        <h6 class="mt-2">{{ $loop->iteration }}</h6>
-                                                    </div>
-                                                    <div class="form-group col-md-3">
-                                                        @if ($firstIteration)
-                                                        <label for="start{{ $operationTime->id }}">Start</label>
-                                                        @endif
-                                                        <input step="300" required type="time" class="form-control"
-                                                            id="start{{ $operationTime->id }}"
-                                                            value="{{ $operationTime->start }}" name="start[]">
-                                                    </div>
-                                                    <div class="form-group col-md-3">
-                                                        @if ($firstIteration)
-                                                        <label for="finish{{ $operationTime->id }}">Finish</label>
-                                                        @endif
-                                                        <input step="300" required type="time" class="form-control"
-                                                            id="finish{{ $operationTime->id }}"
-                                                            value="{{ $operationTime->finish }}" name="finish[]">
-                                                    </div>
-                                                    <div class="form-group col-md-2">
-                                                        @if ($firstIteration)
-                                                        <label for="status{{ $operationTime->id }}">Status</label>
-                                                        @endif
-                                                        <select class="custom-select" name="status[]">
-                                                            <option value="1" {{ $operationTime->status == "1" ?
-                                                                'selected' : '' }}>Work</option>
-                                                            <option value="2" {{ $operationTime->status == "2" ?
-                                                                'selected' : '' }}>Break</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="form-group col-md-2">
-                                                        @if ($firstIteration)
-                                                        <label>Action</label>
-                                                        @endif
-                                                        <div>
-                                                            <button type="button" class="btn btn-danger"
-                                                                data-toggle="modal"
-                                                                data-target="#deleteModal{{ $operationTime->id }}">Delete</button>
+                                                <div class="form-row-container">
+                                                    <!-- Iterate through operation times -->
+                                                    @foreach ($operationTimes->where('name_id', $item->id)->sortBy('id')
+                                                    as $operationTime)
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-1">
+                                                            @if ($firstIteration)
+                                                            <label>No</label>
+                                                            @endif
+                                                            <h6 class="mt-2">{{ $loop->iteration }}</h6>
+                                                        </div>
+                                                        <div class="form-group col-md-3">
+                                                            @if ($firstIteration)
+                                                            <label for="start{{ $operationTime->id }}">Start</label>
+                                                            @endif
+                                                            <input step="300" required type="time" class="form-control"
+                                                                id="start{{ $operationTime->id }}"
+                                                                value="{{ $operationTime->start }}" name="start[]">
+                                                        </div>
+                                                        <div class="form-group col-md-3">
+                                                            @if ($firstIteration)
+                                                            <label for="finish{{ $operationTime->id }}">Finish</label>
+                                                            @endif
+                                                            <input step="300" required type="time" class="form-control"
+                                                                id="finish{{ $operationTime->id }}"
+                                                                value="{{ $operationTime->finish }}" name="finish[]">
+                                                        </div>
+                                                        <div class="form-group col-md-2">
+                                                            @if ($firstIteration)
+                                                            <label for="status{{ $operationTime->id }}">Status</label>
+                                                            @endif
+                                                            <select class="custom-select" name="status[]">
+                                                                <option value="1" {{ $operationTime->status == "1" ?
+                                                                    'selected' : '' }}>Work</option>
+                                                                <option value="2" {{ $operationTime->status == "2" ?
+                                                                    'selected' : '' }}>Break</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group col-md-2">
+                                                            @if ($firstIteration)
+                                                            <label>Action</label>
+                                                            @endif
+                                                            @if ($operationTime->status)
+                                                            <div>
+                                                                <button type="button" class="btn btn-danger"
+                                                                    data-toggle="modal"
+                                                                    data-target="#deleteModal{{ $operationTime->id }}">Delete</button>
+                                                            </div>
+                                                            @endif
                                                         </div>
                                                     </div>
+                                                    @php $firstIteration = false; @endphp
+                                                    @endforeach
                                                 </div>
-                                                @php $firstIteration = false; @endphp
-                                                @endforeach
-                                                <button type="submit" class="btn btn-info">Submit</button>
+                                                <button type="submit" class="btn btn-info mt-2">Submit</button>
                                             </form>
                                         </div>
                                     </div>
@@ -733,7 +757,7 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-content" id="modalOperation">
+            {{-- <div class="modal-content" id="modalOperation">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addOperationTimeModalLabel">Insert New Data On Existed Op Time</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -775,6 +799,68 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Data</button>
+                    </div>
+                </form>
+            </div> --}}
+            <div class="modal-content" id="modalOperation">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOperationTimeModalLabel">Add Data Production Plan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('store-data-time') }}" method="post">
+                    <div class="modal-body">
+                        @csrf
+                        <label for="row-count2">Jumlah Baris:</label>
+                        <select id="row-count2" onchange="updateRowCount2()" name="row-count2">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option selected value="20">20</option>
+                        </select>
+                        <div class="form-group">
+                            <label for="operation_name">Name</label>@error('operation_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <input required type="text" name="operation_name" class="form-control @error('operation_name') is-invalid 
+                                @enderror" id="operation_name">
+                        </div>
+                        <div class="table-container">
+                            <table class="table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Start</th>
+                                        <th>Finish</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="form-rows2">
+                                    <!-- Rows will be generated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
             </div>
@@ -952,7 +1038,7 @@
                     {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
                 </div>
             </div>
-            <div class="modal-content" id="modalOptionOperation">
+            {{-- <div class="modal-content" id="modalOptionOperation">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Select Method</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -972,7 +1058,6 @@
                             <span><strong>By Form</strong></span>
                         </div>
                         <div class="row">
-
                             <div class="col">
                                 <button type="button" class="btn btn-info w-100" data-toggle="modal"
                                     data-target="#newOpTimeModal" data-dismiss="modal">
@@ -988,12 +1073,10 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
     <!-- End Option Modal -->
@@ -1179,8 +1262,6 @@
             document.getElementById('modalProductionCsv').style.display = 'block';
             document.getElementById('modalOperationCsv').style.display = 'none';
             document.getElementById('modalMasterCsv').style.display = 'none';
-            document.getElementById('modalOptionOperation').style.display = 'none';
-            document.getElementById('modalOptionAnother').style.display = 'block';
         } else if (type === 'operation') {
             document.getElementById('modalProduction').style.display = 'none';
             document.getElementById('modalOperation').style.display = 'block';
@@ -1188,8 +1269,6 @@
             document.getElementById('modalProductionCsv').style.display = 'none';
             document.getElementById('modalOperationCsv').style.display = 'block';
             document.getElementById('modalMasterCsv').style.display = 'none';
-            document.getElementById('modalOptionOperation').style.display = 'block';
-            document.getElementById('modalOptionAnother').style.display = 'none';
             // Show fields relevant to Operation Time
         } else if (type === 'master') {
             document.getElementById('modalProduction').style.display = 'none';
@@ -1198,8 +1277,6 @@
             document.getElementById('modalProductionCsv').style.display = 'none';
             document.getElementById('modalOperationCsv').style.display = 'none';
             document.getElementById('modalMasterCsv').style.display = 'block';
-            document.getElementById('modalOptionOperation').style.display = 'none';
-            document.getElementById('modalOptionAnother').style.display = 'block';
         }
     }
 
@@ -1333,25 +1410,6 @@
         }
     }
 
-    // function updateRowCount2() {
-    //     var rowCount = document.getElementById("row-count2").value;
-    //     var table = document.getElementById("form-rows2");
-
-    //     // Hide all rows
-    //     var allRows = table.getElementsByTagName("tr");
-    //     for (var i = 0; i < allRows.length; i++) {
-    //         allRows[i].style.display = 'none';
-    //         disableFormElements(allRows[i]);
-    //     }
-
-    //     // Show selected number of rows
-    //     for (var i = 0; i < rowCount; i++) {
-    //         var currentRow = allRows[i];
-    //         currentRow.style.display = 'table-row';
-    //         enableFormElements(currentRow, i); // Passing index to generate unique IDs
-    //     }
-    // }
-
     function disableFormElements(row) {
         var formElements = row.querySelectorAll("input, select");
         for (var i = 0; i < formElements.length; i++) {
@@ -1411,8 +1469,8 @@
             
             row.innerHTML = `
                 <td style="width: 15%"><input type="number" required class="form-control" name="number[]" value="${i + 1}" readonly /></td>
-                <td><input step="300" required type="time" class="form-control" name="start[]" value="10:00:00"></td>
-                <td><input step="300" required type="time" class="form-control" name="finish[]" value="10:00:00"></td>
+                <td><input step="300" required type="time" class="form-control" name="start[]" ></td>
+                <td><input step="300" required type="time" class="form-control" name="finish[]" ></td>
                 <td>
                     <select required class="form-control" name="status[]">
                         <option value="1">Work</option>

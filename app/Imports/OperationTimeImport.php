@@ -72,7 +72,7 @@ class OperationTimeImport implements WithMappedCells, ToModel
             $start =  $row["start{$i}"];
             $status =  $row["status{$i}"];
 
-            if ($id && $option && $finish && $start && $status) {
+            if ($option) {
                 OperationTime::updateOrInsert(
                     [
                         'id' => $id
@@ -87,7 +87,6 @@ class OperationTimeImport implements WithMappedCells, ToModel
             }
         }
 
-        DB::table('operation_times')->whereNull('start')->whereNull('finish')->delete();
 
         // dd($row);
     }

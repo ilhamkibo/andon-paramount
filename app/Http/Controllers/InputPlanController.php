@@ -28,7 +28,7 @@ class InputPlanController extends Controller
 
         $plans = $this->getDataPlan();
 
-        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->whereNotNull('start')->get();
+        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->get();
         $operationNames = OperationName::all();
         // dd($operationTimes);
         $lines = Line::all();
@@ -210,7 +210,7 @@ class InputPlanController extends Controller
 
         $lastId = OperationTime::where('name_id', $validatedData['opTime'])
             ->whereNull('start')
-            ->orderBy('id', 'desc')
+            ->orderBy('id', 'asc')
             ->pluck('id')
             ->first();
         if (!$lastId) {
@@ -382,7 +382,7 @@ class InputPlanController extends Controller
 
         // Save the changes
         $operationTime->save();
-        return redirect('/input-plan')->with('sukses', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        return redirect('/input-plan')->with('gagal', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
     }
 
     public function bulkDestroyPlanData()
@@ -454,7 +454,7 @@ class InputPlanController extends Controller
         if ($request->hasFile('fileExcel')) {
             $file = $request->file('fileExcel');
             Excel::import(new OperationTimeImport, $file);
-            return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted!');
+            return redirect('/input-plan')->with('sukses', 'Plan Production Updated/Inserted from Imported File!');
         }
 
         // Redirect back with error if file is not present
