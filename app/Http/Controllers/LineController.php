@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BedModels;
+use App\Models\Note;
 use App\Models\OperationName;
 use App\Models\OperationTime;
 use App\Models\Plan;
@@ -423,8 +424,10 @@ class LineController extends Controller
             $logProduction = Production::where('plan_id', $value->id)->where('created_at', '>=', $value->start_time)->get();
             $logProductions[] = $logProduction;
         }
-
-        return view('components.product', compact('logProductions', 'newDataPlans'));
+        $loggers = Production::whereDate('created_at', $dateReq)->with(['note', 'plan'])->get();
+        // dd($loggers);
+        // dd($logProductions);
+        return view('components.product', compact('logProductions', 'loggers', 'newDataPlans'));
     }
 
     public function getData($tanggal)
@@ -629,5 +632,28 @@ class LineController extends Controller
         // }
 
         return response()->json($allIntervalData);
+    }
+
+    public function storeNote(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'operator' => 'required|string',
+            'problem' => 'required|string',
+            'reason' => 'required|string'
+        ]);
+
+
+        Note::updateOrInsert(
+            [
+                'production_id' => $id
+            ],
+            [
+                'operator' => $validated['operator'],
+                'problem' => $validated['problem'],
+                'reason' => $validated['reason']
+            ]
+        );
+
+        return redirect()->back()->with('sukses', 'Note created/updated successfully!');
     }
 }

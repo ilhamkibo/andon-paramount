@@ -67,6 +67,16 @@
     </div>
     @endif
 
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul class="m-0">
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <div class="row mb-3 justify-content-center">
         <div class="col-lg-10 col-12 col-md-10 col-sm-10">
             {{-- <button id="toggleFormButton" class="border-0 bg-transparent"><i class="fas fa-chevron-right"></i>
@@ -290,7 +300,7 @@
     </div>
     <div class="row justify-content-center">
         <!-- bottom row (We are only adding the ID to make the widgets sortable)-->
-        <section class="col-lg-4 connectedSortable">
+        <section class="col-lg-6 connectedSortable">
             <!-- Map card -->
             <div class="card">
                 <div class="card-header border-0">
@@ -314,6 +324,7 @@
                                     <th>No.</th>
                                     <th>Code</th>
                                     <th>RT</th>
+                                    <th>Set Time</th>
                                     <th style="width: 20%">Action</th>
                                 </tr>
                             </thead>
@@ -324,6 +335,7 @@
                                     <td class="py-1 text-center align-middle">{{ $item->id }}</td>
                                     <td class="py-1 text-center align-middle">{{ $item->name }}</td>
                                     <td class="py-1 text-center align-middle">{{ $item->tact_time }}</td>
+                                    <td class="py-1 text-center align-middle">{{ $item->setting_time }}</td>
                                     <td class="py-1 text-center align-middle">
                                         @if ($item->name)
                                         <button type="button" class="btn btn-info" data-toggle="modal"
@@ -347,7 +359,8 @@
                                                         <span aria-hidden="true">&times;</span>
                                                     </button>
                                                 </div>
-                                                <form action="{{ route('masterData.add', $item->id) }}" method="POST">
+                                                <form action="{{ route('masterData.update', $item->id) }}"
+                                                    method="POST">
                                                     @csrf
                                                     @method('post')
                                                     <div class="modal-body">
@@ -359,10 +372,16 @@
                                                                 value="{{ $item->name }}" name="name">
                                                         </div>
                                                         <div class="form-group">
-                                                            <label for="tact_time">RT</label>
+                                                            <label for="tact_time">Run Time</label>
                                                             <input required type="number" step="0.01"
                                                                 class="form-control" id="tact_time"
                                                                 value="{{ $item->tact_time }}" name="tact_time">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="setting_time">Setting Time</label>
+                                                            <input required type="number" step="0.01"
+                                                                class="form-control" id="setting_time"
+                                                                value="{{ $item->setting_time }}" name="setting_time">
                                                         </div>
                                                         <!-- Add other form fields as needed -->
                                                     </div>
@@ -422,7 +441,7 @@
             <!-- /.card -->
 
         </section>
-        <section class="col-lg-6 connectedSortable">
+        <section class="col-lg-4 connectedSortable">
             <!-- Map card -->
             <div class="card">
                 <div class="card-header border-0 d-flex align-items-center">
@@ -492,17 +511,19 @@
                                                             @if ($firstIteration)
                                                             <label for="start{{ $operationTime->id }}">Start</label>
                                                             @endif
-                                                            <input step="300" required type="time" class="form-control"
-                                                                id="start{{ $operationTime->id }}"
-                                                                value="{{ $operationTime->start }}" name="start[]">
+                                                            <input step="300" {{ $operationTime->start ? 'required' : ''
+                                                            }} type="time" class="form-control"
+                                                            id="start{{ $operationTime->id }}"
+                                                            value="{{ $operationTime->start }}" name="start[]">
                                                         </div>
                                                         <div class="form-group col-md-3">
                                                             @if ($firstIteration)
                                                             <label for="finish{{ $operationTime->id }}">Finish</label>
                                                             @endif
-                                                            <input step="300" required type="time" class="form-control"
-                                                                id="finish{{ $operationTime->id }}"
-                                                                value="{{ $operationTime->finish }}" name="finish[]">
+                                                            <input step="300" {{ $operationTime->start ? 'required' : ''
+                                                            }} type="time" class="form-control"
+                                                            id="finish{{ $operationTime->id }}"
+                                                            value="{{ $operationTime->finish }}" name="finish[]">
                                                         </div>
                                                         <div class="form-group col-md-2">
                                                             @if ($firstIteration)
@@ -757,7 +778,7 @@
                     </div>
                 </form>
             </div>
-            {{-- <div class="modal-content" id="modalOperation">
+            <div class="modal-content" id="modalOperation">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addOperationTimeModalLabel">Insert New Data On Existed Op Time</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -801,8 +822,8 @@
                         <button type="submit" class="btn btn-primary">Add Data</button>
                     </div>
                 </form>
-            </div> --}}
-            <div class="modal-content" id="modalOperation">
+            </div>
+            {{-- <div class="modal-content" id="modalOperation">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addOperationTimeModalLabel">Add Data Production Plan</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -863,7 +884,7 @@
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
-            </div>
+            </div> --}}
             <div class="modal-content" id="modalMaster">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addOperationTimeModalLabel">Add New Bed Model</h5>
@@ -878,12 +899,15 @@
                         <!-- Example: -->
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <input type="text" class="form-control" id="name" value="{{ $item->name }}" name="name">
+                            <input type="text" class="form-control" id="name" name="name">
                         </div>
                         <div class="form-group">
-                            <label for="tact_time">RT</label>
-                            <input type="number" step="0.01" class="form-control" id="tact_time"
-                                value="{{ $item->tact_time }}" name="tact_time">
+                            <label for="tact_time">Tact Time</label>
+                            <input type="number" step="0.01" class="form-control" id="tact_time" name="tact_time">
+                        </div>
+                        <div class="form-group">
+                            <label for="setting_time">Setup Time</label>
+                            <input type="number" step="0.01" class="form-control" id="setting_time" name="setting_time">
                         </div>
                         <!-- Add other form fields as needed -->
                     </div>
@@ -1035,10 +1059,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
                 </div>
             </div>
-            {{-- <div class="modal-content" id="modalOptionOperation">
+            <div class="modal-content" id="modalOptionOperation">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Select Method</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -1076,7 +1099,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
     <!-- End Option Modal -->
@@ -1085,7 +1108,7 @@
         <div class="modal-dialog">
             <div class="modal-content" id="modalProduction">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="newOpTimeModalLabel">Add Data Production Plan</h5>
+                    <h5 class="modal-title" id="newOpTimeModalLabel">Add Data Operation Time</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1262,6 +1285,8 @@
             document.getElementById('modalProductionCsv').style.display = 'block';
             document.getElementById('modalOperationCsv').style.display = 'none';
             document.getElementById('modalMasterCsv').style.display = 'none';
+            document.getElementById('modalOptionAnother').style.display = 'block';
+            document.getElementById('modalOptionOperation').style.display = 'none';
         } else if (type === 'operation') {
             document.getElementById('modalProduction').style.display = 'none';
             document.getElementById('modalOperation').style.display = 'block';
@@ -1269,6 +1294,8 @@
             document.getElementById('modalProductionCsv').style.display = 'none';
             document.getElementById('modalOperationCsv').style.display = 'block';
             document.getElementById('modalMasterCsv').style.display = 'none';
+            document.getElementById('modalOptionAnother').style.display = 'none';
+            document.getElementById('modalOptionOperation').style.display = 'block';
             // Show fields relevant to Operation Time
         } else if (type === 'master') {
             document.getElementById('modalProduction').style.display = 'none';
@@ -1277,6 +1304,8 @@
             document.getElementById('modalProductionCsv').style.display = 'none';
             document.getElementById('modalOperationCsv').style.display = 'none';
             document.getElementById('modalMasterCsv').style.display = 'block';
+            document.getElementById('modalOptionAnother').style.display = 'block';
+            document.getElementById('modalOptionOperation').style.display = 'none';
         }
     }
 

@@ -28,7 +28,7 @@ class InputPlanController extends Controller
 
         $plans = $this->getDataPlan();
 
-        $operationTimes = OperationTime::orderBy('name_id', 'asc')->with('operation_name')->get();
+        $operationTimes = OperationTime::orderBy('name_id', 'asc')->whereNotNull('start')->with('operation_name')->get();
         $operationNames = OperationName::all();
         // dd($operationTimes);
         $lines = Line::all();
@@ -187,19 +187,56 @@ class InputPlanController extends Controller
         }
     }
 
-    public function storeDataTime(Request $request)
+    public function storeNewOperationTime(Request $request)
     {
+        $lastId = OperationName::orderBy('id', 'desc')->pluck('id')->first();
+        $lastIdOt = OperationTime::orderBy('id', 'desc')->pluck('id')->first() + 1;
+
+        if ($lastId >= 50) {
+            return redirect('/input-plan')->with('gagal', 'Operation time fully entered (Max 50 rows)! Edit existed operation time.'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        } else {
+            $lastId = $lastId + 1;
+        }
+
         $validated = $request->validate([
-            'operation_name' => 'required',
+            'operation_name' => 'required|unique:operation_names,name',
             'number' => 'required|array',
             'start' => 'required|array',
             'finish' => 'required|array',
             'status' => 'required|array'
         ]);
 
-        dd($validated);
+        // dd($validated);
+
+        OperationName::updateOrInsert([
+            'id' => $lastId,
+        ], [
+            'name' => $validated['operation_name'],
+            'created_at' => now(),
+        ]);
+
+
+        for ($i = 0; $i <= 19; $i++) {
+            $id = $lastIdOt + $i;
+
+            OperationTime::updateOrInsert(
+                [
+                    'id' => $id
+                ],
+                [
+                    'name_id' => $lastId,
+                    'start' => $validated['start'][$i] ?? null,
+                    'finish' => $validated['finish'][$i] ?? null,
+                    'status' => $validated['status'][$i] ?? null,
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        return redirect('/input-plan')->with('sukses', 'Insert new operation time success!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+
     }
-    public function storeOperationtime(Request $request)
+    public function insertNewLineOperationTime(Request $request)
     {
         $validatedData = $request->validate([
             'start' => 'required',
@@ -213,9 +250,11 @@ class InputPlanController extends Controller
             ->orderBy('id', 'asc')
             ->pluck('id')
             ->first();
+
         if (!$lastId) {
-            $lastId = OperationTime::where('name_id', $validatedData['opTime'])->orderBy('id', 'desc')->pluck('id')->first() + 1;
+            return redirect('/input-plan')->with('gagal', 'Line on choosen operation time data is fully used!'); // Ganti 'route_name' dengan nama rute yang sesuai.
         }
+
         OperationTime::updateOrInsert(
             [
                 'id' => $lastId
@@ -224,7 +263,8 @@ class InputPlanController extends Controller
                 'name_id' => $validatedData['opTime'],
                 'start' => $validatedData['start'],
                 'finish' => $validatedData['finish'],
-                'status' => $validatedData['status']
+                'status' => $validatedData['status'],
+                'created_at' => now(),
             ]
         );
 
@@ -232,46 +272,103 @@ class InputPlanController extends Controller
         return redirect('/input-plan')->with('sukses', 'Insert operation time success!'); // Ganti 'route_name' dengan nama rute yang sesuai.
     }
 
-    public function addMasterData(Request $request, $id)
+    public function updateOperationTimeData(Request $request, $id)
     {
 
-        if ($id == 101) {
-            $bedModel = BedModels::whereNull('name')->limit(1)->first();
-        } else {
-            $bedModel = BedModels::findOrFail($id);
+        $validatedData = $request->validate([
+            'nama_operation' => 'required|string|unique:operation_names,name,' . $id,
+            'start.*' => 'required',
+            'finish.*' => 'required',
+            'status.*' => 'required',
+        ]);
+
+        // dd($validatedData);
+        // Ambil operationNames dan operationTimes
+        $operationNames = OperationName::findOrFail($id);
+
+        $operationNames->update([
+            'name' => $validatedData['nama_operation'],
+        ]);
+
+        $operationTimes = OperationTime::where('name_id', $id)->whereNotNull('start')->get();
+        // Iterasi melalui operationTimes untuk update masing-masing record
+        foreach ($operationTimes as $index => $operationTime) {
+            $updatedData = [
+                'start' => $validatedData['start'][$index],
+                'finish' => $validatedData['finish'][$index],
+                'status' => $validatedData['status'][$index],
+            ];
+
+            // Update data
+            $operationTime->update($updatedData);
         }
 
-        if ($bedModel === null) {
-            return redirect('/input-plan')->with('gagal', 'Master data fully entered!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        // Redirect dengan pesan sukses
+        return redirect('/input-plan')->with('sukses', 'Operation time data updated successfully!');
+    }
+
+    public function destroyOperationTimeData($id)
+    {
+        $operationTime = OperationTime::findOrFail($id);
+        // dd($operationTime);
+        // Update data
+        // $operationTime->delete();
+        // Set start and finish to null
+        $operationTime->start = null;
+        $operationTime->finish = null;
+        $operationTime->status = null;
+
+        // Save the changes
+        $operationTime->save();
+        return redirect('/input-plan')->with('gagal', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+    }
+
+    public function addMasterData(Request $request)
+    {
+
+        $lastId = BedModels::orderBy('id', 'desc')->pluck('id')->first();
+
+        if ($lastId >= 2000) {
+            return redirect('/input-plan')->with('gagal', 'Master data fully entered (Max 2000 rows)! Edit existed master data.'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        } else {
+            $lastId = $lastId + 1;
         }
+
         // Validasi data input jika diperlukan
-        $request->validate([
-            'name' => 'required|string',
-            'tact_time' => 'required'
+        $validatedData = $request->validate([
+            'name' => 'required|string|unique:bed_models,name',
+            'tact_time' => 'required',
+            'setting_time' => 'required',
             // Tambahkan validasi untuk field lainnya
         ]);
 
         // Update data
-        $bedModel->update([
-            'name' => $request->input('name'),
-            'tact_time' => $request->input('tact_time'),
-            // Update field lainnya
-        ]);
-        return redirect('/input-plan')->with('sukses', 'Master data updated successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        BedModels::updateOrInsert(
+            [
+                'id' => $lastId
+            ],
+            [
+                'name' => $validatedData['name'],
+                'tact_time' => $validatedData['tact_time'],
+                'setting_time' => $validatedData['setting_time'],
+            ]
+        );
+        return redirect('/input-plan')->with('sukses', 'Master data inserted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
 
     }
 
-    public function updateMasterData(Request $request)
+    public function updateMasterData(Request $request, $id)
     {
-        $bedModel = BedModels::whereNull('name')->limit(1)->first();
+        $bedModel = BedModels::find($id);
 
         if ($bedModel === null) {
-            return redirect('/input-plan')->with('gagal', 'Master data fully entered!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+            return redirect('/input-plan')->with('gagal', 'Master data not found!'); // Ganti 'route_name' dengan nama rute yang sesuai.
         }
         // Validasi data input jika diperlukan
         $request->validate([
-            'name' => 'required|string',
-            'tact_time' => 'required'
+            'name' => 'required|string|unique:bed_models,name,' . $id,
+            'tact_time' => 'required',
+            'setting_time' => 'required'
             // Tambahkan validasi untuk field lainnya
         ]);
 
@@ -279,7 +376,7 @@ class InputPlanController extends Controller
         $bedModel->update([
             'name' => $request->input('name'),
             'tact_time' => $request->input('tact_time'),
-            // Update field lainnya
+            'setting_time' => $request->input('setting_time'),
         ]);
         return redirect('/input-plan')->with('sukses', 'Master data updated successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
 
@@ -308,44 +405,6 @@ class InputPlanController extends Controller
 
     }
 
-    public function updateOperationTimeData(Request $request, $id)
-    {
-
-        $validatedData = $request->validate([
-            'nama_operation' => 'required|string',
-            'start.*' => 'required',
-            'finish.*' => 'required',
-            'status.*' => 'required',
-        ]);
-
-        // dd($validatedData);
-        // Ambil operationNames dan operationTimes
-        $operationNames = OperationName::findOrFail($id);
-
-        $operationNames->update([
-            'name' => $validatedData['nama_operation'],
-        ]);
-
-        $operationTimes = OperationTime::where('name_id', $id)->get();
-
-        // Iterasi melalui operationTimes untuk update masing-masing record
-        foreach ($operationTimes as $index => $operationTime) {
-            $updatedData = [
-                'start' => $validatedData['start'][$index],
-                'finish' => $validatedData['finish'][$index],
-                'status' => $validatedData['status'][$index],
-            ];
-
-            // Update data
-            $operationTime->update($updatedData);
-        }
-
-        // Redirect dengan pesan sukses
-        return redirect('/input-plan')->with('sukses', 'Operation time data updated successfully!');
-    }
-
-
-
     public function destroyMasterData($id)
     {
         $bedModel = BedModels::findOrFail($id);
@@ -369,21 +428,6 @@ class InputPlanController extends Controller
 
     }
 
-    public function destroyOperationTimeData($id)
-    {
-        $operationTime = OperationTime::findOrFail($id);
-        // dd($operationTime);
-        // Update data
-        // $operationTime->delete();
-        // Set start and finish to null
-        $operationTime->start = null;
-        $operationTime->finish = null;
-        $operationTime->status = null;
-
-        // Save the changes
-        $operationTime->save();
-        return redirect('/input-plan')->with('gagal', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
-    }
 
     public function bulkDestroyPlanData()
     {

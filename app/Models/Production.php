@@ -18,6 +18,6 @@ class Production extends Model
     }
     public function note()
     {
-        return $this->hasMany(Note::class);
+        return $this->hasOne(Note::class, 'production_id', 'id');
     }
 }

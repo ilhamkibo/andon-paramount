@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->float('tact_time', 7, 2)->nullable();
-            $table->float('setting_time', 7, 2)->default(7.5);
+            $table->float('setting_time', 7, 2)->nullable();
             $table->timestamps();
         });
     }

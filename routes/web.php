@@ -27,13 +27,15 @@ Route::post('/import-plan-file', [InputPlanController::class, 'importPlan'])->na
 Route::post('/import-time-file', [InputPlanController::class, 'importTime'])->name('file.import-time');
 Route::get('/input-plan', [InputPlanController::class, 'index'])->name('input-plan');
 Route::post('/store-data', [InputPlanController::class, 'store'])->name('store-data');
-Route::post('/store-data-time', [InputPlanController::class, 'storeDataTime'])->name('store-data-time');
-Route::post('/masterData/{id}', [InputPlanController::class, 'addMasterData'])->name('masterData.add');
+Route::delete('/operationTimeData/{id}', [InputPlanController::class, 'destroyOperationTimeData'])->name('OperationTimeData.destroy'); //dipake
+Route::post('/store-data-time', [InputPlanController::class, 'storeNewOperationTime'])->name('store-data-time'); //dipake
+Route::post('/store-operation', [InputPlanController::class, 'insertNewLineOperationTime'])->name('store-operation'); //dipake
+Route::post('/operationTimeData/{id}', [InputPlanController::class, 'updateOperationTimeData'])->name('OperationTimeData.update'); //dipake
+Route::post('/operationTimePlan/{date}', [LineController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update'); //dipake
+Route::post('/masterData/{id}', [InputPlanController::class, 'updateMasterData'])->name('masterData.update');
+Route::post('/masterData', [InputPlanController::class, 'addMasterData'])->name('masterData.add');
 Route::put('/masterData/{id}', [InputPlanController::class, 'destroyMasterData'])->name('masterData.destroy');
-Route::post('/operationTimeData/{id}', [InputPlanController::class, 'updateOperationTimeData'])->name('OperationTimeData.update');
-Route::delete('/operationTimeData/{id}', [InputPlanController::class, 'destroyOperationTimeData'])->name('OperationTimeData.destroy');
-Route::post('/store-operation', [InputPlanController::class, 'storeOperationtime'])->name('store-operation');
 Route::post('/planData/{id}', [InputPlanController::class, 'updatePlanData'])->name('planData.update');
 Route::delete('/planData/{id}', [InputPlanController::class, 'destroyPlanData'])->name('planData.destroy');
 Route::delete('/planData', [InputPlanController::class, 'bulkDestroyPlanData'])->name('planData.bulkDestroy');
-Route::post('/operationTimePlan/{date}', [LineController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update');
+Route::post('/store-note/{id}', [LineController::class, 'storeNote'])->name('store-note');

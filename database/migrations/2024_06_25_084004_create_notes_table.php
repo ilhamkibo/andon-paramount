@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('production_id');
             $table->string('operator');
             $table->string('problem');
-            $table->string('reason');
+            $table->text('reason');
             $table->timestamps();
         });
     }
