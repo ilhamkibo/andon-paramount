@@ -887,7 +887,7 @@
             </div> --}}
             <div class="modal-content" id="modalMaster">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addOperationTimeModalLabel">Add New Bed Model</h5>
+                    <h5 class="modal-title" id="addMasterModalLabel">Add New Bed Model</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

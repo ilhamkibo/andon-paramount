@@ -125,7 +125,7 @@
 
         <section class="col-lg-10 connectedSortable">
             <!-- Custom tabs (Charts with tabs)-->
-            <a href="{{ url()->previous() }}" class="btn btn-secondary mb-2">Back</a>
+            <a href="{{ route('production') }}" class="btn btn-secondary mb-2">Back</a>
 
             <div class="card">
                 <div class="card-header">
@@ -208,7 +208,6 @@
                                 <td>{{ $item->status }}</td>
                                 <td>
                                     @if ($item->note)
-                                    {{-- <div><small>Problem: {{ $item->note->problem }}</small></div> --}}
                                     <div>
                                         <span><strong>Problem</strong>: {{ $item->note->problem }} | </span>
                                         <span><strong>Reason</strong>: {{ $item->note->reason }}</span>
@@ -222,20 +221,24 @@
                                 <td>
                                     @if ($item->note)
                                     <button type="button" class="btn btn-info" data-toggle="modal"
-                                        data-target="#modalmodil{{ $item->id }}">Show</button>
+                                        data-target="#notesModal{{ $item->id }}"
+                                        onclick="setModalType('insert', {{ $item->id }})">Show</button>
                                     <button type="button" class="btn btn-danger" data-toggle="modal"
-                                        data-target="#modalmodil{{ $item->id }}">Delete</button>
+                                        data-target="#notesModal{{ $item->id }}"
+                                        onclick="setModalType('delete', {{ $item->id }})">Delete</button>
                                     @else
                                     <button type="button" class="btn btn-warning" data-toggle="modal"
-                                        data-target="#modalmodil{{ $item->id }}">Add Notes</button>
+                                        data-target="#notesModal{{ $item->id }}"
+                                        onclick="setModalType('insert', {{ $item->id }})">Add
+                                        Notes</button>
                                     @endif
 
-                                    <div class="modal fade" id="modalmodil{{ $item->id }}" tabindex="-1" role="dialog"
-                                        aria-labelledby="modalmodilLabel{{ $item->id }}" aria-hidden="true">
+                                    <div class="modal fade" id="notesModal{{ $item->id }}" tabindex="-1" role="dialog"
+                                        aria-labelledby="notesModalLabel{{ $item->id }}" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                            <div class="modal-content">
+                                            <div class="modal-content" id="addAndEditNotes{{ $item->id }}">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="modalmodilLabel{{ $item->id }}">
+                                                    <h5 class="modal-title" id="notesModalLabel{{ $item->id }}">
                                                         Notes for {{ $item->plan->bed_models->name }} at {{
                                                         \Carbon\Carbon::parse($item->created_at)->format('H:i:s') }}
                                                     </h5>
@@ -269,6 +272,29 @@
                                                     </form>
                                                 </div>
                                             </div>
+                                            <div class="modal-content" id="deleteNotes{{ $item->id }}">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="notesModalLabel{{ $item->id }}">Delete
+                                                        Confirmation
+                                                    </h5>
+                                                    <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete this plan?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('delete-note', $item->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
@@ -280,6 +306,7 @@
                             @endforelse
                         </tbody>
                     </table>
+
                 </div><!-- /.card-body -->
 
             </div>
@@ -399,6 +426,17 @@
         });
 
     });
+
+    function setModalType(type, id) {
+    if (type === 'insert') {
+        // Show fields relevant to Plan Production
+        document.getElementById('addAndEditNotes' + id).style.display = 'block';
+        document.getElementById('deleteNotes' + id).style.display = 'none';
+    } else if (type === 'delete') {
+        document.getElementById('addAndEditNotes' + id).style.display = 'none';
+        document.getElementById('deleteNotes' + id).style.display = 'block';
+    } 
+}
 
     // Variabel global untuk melacak header yang diklik sebelumnya
     document.querySelectorAll('.sortable').forEach(function(th) {

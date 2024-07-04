@@ -39,3 +39,4 @@ Route::post('/planData/{id}', [InputPlanController::class, 'updatePlanData'])->n
 Route::delete('/planData/{id}', [InputPlanController::class, 'destroyPlanData'])->name('planData.destroy');
 Route::delete('/planData', [InputPlanController::class, 'bulkDestroyPlanData'])->name('planData.bulkDestroy');
 Route::post('/store-note/{id}', [LineController::class, 'storeNote'])->name('store-note');
+Route::delete('/delete-note/{id}', [LineController::class, 'deleteNote'])->name('delete-note');

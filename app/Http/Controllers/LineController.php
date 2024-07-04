@@ -656,4 +656,14 @@ class LineController extends Controller
 
         return redirect()->back()->with('sukses', 'Note created/updated successfully!');
     }
+
+    public function deleteNote($id)
+    {
+        $note = Note::where('production_id', $id)->firstOrFail();
+        // dd($note);
+        // Update data
+        $note->delete();
+        return redirect()->back()->with('sukses', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+
+    }
 }
