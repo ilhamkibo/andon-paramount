@@ -49,7 +49,7 @@ class LineController extends Controller
         $chartTime = $this->timeChart($operationTimes);
         $timeBreakModal = $this->modalBreak($operationTimes);
         // $dataActual = $this->getDataActual($dataPlans);
-        // dd($chartTime);
+        // dd($newDataPlans);
         //array breaktimes
         $breakTimes = $this->calculateBreakTimes($operationTimes);
         $breakTimes1 = $breakTimes[0];
@@ -62,7 +62,7 @@ class LineController extends Controller
         $forTooltip1 = $forTooltips[0];
         //array untuk breaktime dan menghitung value produksi setiap 5 menit
         // $breakValue = [];
-
+        // dd($dataChartObject);
         return view('line', compact('dataChartObject', 'operationNames', 'operationTimes', 'timeBreakModal', 'chartTime', 'newDataPlans', 'dataPlans', 'breakTimes0', 'breakTimes1', 'forTooltip0', 'forTooltip1'))->with('message', $this->message);
     }
 
@@ -225,6 +225,7 @@ class LineController extends Controller
             $bedModelId = $dataPlan->bed_models_id;
             $targetQuantity = $dataPlan->target_quantity;
             $bedModel = BedModels::find($bedModelId);
+            // echo $bedModel->setting_time;
             $estimatedSpendTime = number_format(($bedModel->tact_time * $targetQuantity) / 60, 2);
             $planDate = Carbon::parse($dataPlan->date);
             $startOperation = ($key == 0)
@@ -232,26 +233,30 @@ class LineController extends Controller
                     Carbon::parse($dataPlan->date)->year,
                     Carbon::parse($dataPlan->date)->month,
                     Carbon::parse($dataPlan->date)->day
-                )
+                )->addSeconds(ceil($bedModel->setting_time * 60))
                 : Carbon::parse($previousOperationEnd);
+            // : Carbon::parse($previousOperationEnd)->addSeconds(ceil($bedModel->setting_time * 60));
 
             $estimatedEndTime = $startOperation->copy()->setDate($planDate->year, $planDate->month, $planDate->day)->addMinutes(ceil($estimatedSpendTime * 60));
-
             foreach ($operationTimes as $index => $operationTime) {
                 if ($operationTime->status == 2) {
                     $breakStartTime = Carbon::parse($operationTime->start)->setDate($planDate->year, $planDate->month, $planDate->day);
                     $breakEndTime = Carbon::parse($operationTime->finis)->setDate($planDate->year, $planDate->month, $planDate->day);
 
                     if ($breakStartTime->gt($startOperation) && $estimatedEndTime->gt($breakStartTime)) {
+                        // dd($breakStartTime, $startOperation, $estimatedEndTime);
+                        // echo $breakStartTime . ' ' . $startOperation . ' ' . $estimatedEndTime . '</br>'; // Ganti 'route_name' dengan nama rute yang sesuai.($breakStartTime, $startOperation, $estimatedEndTime);
+
                         $breakDuration = Carbon::parse($operationTime->finish)->diffInMinutes(Carbon::parse($operationTime->start));
                         $estimatedEndTime->addMinutes(ceil($breakDuration));
                     }
 
-                    $previousOperationEnd = $estimatedEndTime->copy();
+                    $previousOperationEnd = $estimatedEndTime->copy()->addSeconds(ceil($bedModel->setting_time * 60));
+                    // $previousOperationEnd = $estimatedEndTime->copy();
                 }
-                if ($index == (count($operationTimes) - 1)) {
-                    $previousOperationEnd = $estimatedEndTime->copy()->addSeconds(7.5 * 60);
-                }
+                // if ($index == (count($operationTimes) - 1)) {
+                //     $previousOperationEnd = $estimatedEndTime->copy()->addSeconds($bedModel->setting_time * 60);
+                // }
             }
 
             foreach ($operationTimes as $value) {
@@ -433,8 +438,11 @@ class LineController extends Controller
     public function getData($tanggal)
     {
         $dateData = Carbon::parse($tanggal);
+        // dd($dateData);
         $dataPlans = Plan::whereDate('date', $dateData)->get();
-
+        // dd($dataPlans);
+        $bedModels = BedModels::where('id', $dataPlans[0]->bed_models_id)->get();
+        // dd($dataPlans, $bedModels[0]->setting_time);
         if (count($dataPlans) === 0) {
             $dt = Carbon::now();
             if (request('date')) {
@@ -458,7 +466,7 @@ class LineController extends Controller
         }
 
         $newDataPlans = $this->newDataPlan($dataPlans, $operationTimes);
-
+        // dd($newDataPlans);
 
         // Deklarasi variabel untuk menyimpan nilai jam, menit, dan detik
         $jamArray = [];
@@ -474,7 +482,7 @@ class LineController extends Controller
             $onlyTime = Carbon::parse($timeObject->start_time);
             // Simpan nilai jam, menit, dan detik ke dalam variabel
 
-            $jamStart = Carbon::parse($operationTimes[0]->start);
+            $jamStart = Carbon::parse($operationTimes[0]->start)->addSeconds($bedModels[0]->setting_time * 60);
             $hourStart = $jamStart->hour;
             $menitStart = $jamStart->minute;
             $secondStart = $jamStart->second;
@@ -483,15 +491,17 @@ class LineController extends Controller
             $menitArray[] = $menitStart;
             $detikArray[] = $secondStart;
         }
-
+        // dd($newDataPlans);
         foreach ($newDataPlans as $key => $value) {
             // echo $value->id . ' ' . $jamArray[$key] . '</br>';
             $jamStart = Carbon::parse($operationTimes[0]->start);
             $hourStart = $jamStart->hour;
             $menitStart = $jamStart->minute;
             $secondStart = $jamStart->second;
-
+            // echo $value->id . ' ' . $hourStart . '</br>';
             $dataProduction = Production::where('plan_id', $value->id)->where('created_at', '>=', $value->start_time->startOfDay()->setHour($hourStart)->setMinutes($menitStart)->format('Y-m-d H:i:s'))->with(['plan'])->get();
+            // $dataProduction = Pr10oduction::where('plan_id', $value->id)->with(['plan'])->get();
+            // dd($dataProduction);
             $dataProductions[] = $dataProduction;
         }
 

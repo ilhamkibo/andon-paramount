@@ -9,7 +9,7 @@ class BedModels extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'tact_time', 'id'];
+    protected $fillable = ['name', 'tact_time', 'id', 'setting_time'];
 
     public function plan()
     {

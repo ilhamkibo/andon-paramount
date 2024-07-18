@@ -12,6 +12,7 @@ use App\Imports\BedModelsImport;
 use App\Imports\OperationTimeImport;
 use App\Imports\PlanImport;
 use App\Models\OperationName;
+use App\Models\Timer;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Calculation\Engine\Operands\Operand;
 
@@ -25,6 +26,7 @@ class InputPlanController extends Controller
     {
         // $gregorianDate = '2024-04-01';
         // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
+        $timer = Timer::first();
 
         $plans = $this->getDataPlan();
 
@@ -39,6 +41,7 @@ class InputPlanController extends Controller
             'bedModels' => $bedModels,
             'operationTimes' => $operationTimes,
             'operationNames' => $operationNames,
+            'timer' => $timer
         ]);
     }
 
@@ -272,6 +275,21 @@ class InputPlanController extends Controller
         return redirect('/input-plan')->with('sukses', 'Insert operation time success!'); // Ganti 'route_name' dengan nama rute yang sesuai.
     }
 
+    public function updateTimer(Request $request, $id)
+    {
+        $time = Timer::findOrFail($id);
+        $request->validate([
+            'timer' => 'required|numeric',
+        ]);
+
+        $time->update([
+            'timer' => $request->input('timer'),
+        ]);
+
+        // dd($request->all());
+        return redirect('/input-plan')->with('sukses', 'Update timer success!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+    }
+
     public function updateOperationTimeData(Request $request, $id)
     {
 
@@ -371,7 +389,7 @@ class InputPlanController extends Controller
             'setting_time' => 'required'
             // Tambahkan validasi untuk field lainnya
         ]);
-
+        // dd($bedModel, $request->all());
         // Update data
         $bedModel->update([
             'name' => $request->input('name'),

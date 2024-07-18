@@ -33,6 +33,7 @@ Route::post('/store-operation', [InputPlanController::class, 'insertNewLineOpera
 Route::post('/operationTimeData/{id}', [InputPlanController::class, 'updateOperationTimeData'])->name('OperationTimeData.update'); //dipake
 Route::post('/operationTimePlan/{date}', [LineController::class, 'updateOperationTimePlanData'])->name('operationTimePlan.update'); //dipake
 Route::post('/masterData/{id}', [InputPlanController::class, 'updateMasterData'])->name('masterData.update');
+Route::post('/update-timer/{id}', [InputPlanController::class, 'updateTimer'])->name('update-timer');
 Route::post('/masterData', [InputPlanController::class, 'addMasterData'])->name('masterData.add');
 Route::put('/masterData/{id}', [InputPlanController::class, 'destroyMasterData'])->name('masterData.destroy');
 Route::post('/planData/{id}', [InputPlanController::class, 'updatePlanData'])->name('planData.update');

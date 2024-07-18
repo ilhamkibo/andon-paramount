@@ -627,11 +627,13 @@ setTimeout(() => {
             salesChart.update();
         }
         let tanggalSaja = dataPlans[0].date.substring(0, 10); // Mengambil 10 karakter pertama (bagian tanggal)
-
+        
 
         function oneSecondFunction() {
             // Inisialisasi saat memuat halaman
             checkBreakTimeModal();
+
+            // console.log("🚀 ~ oneSecondFunction ~ salesChartData:", salesChartData.datasets)
 
             // Lakukan permintaan ke rute untuk mengambil data terbaru
             axios.get(`api/get-latest-data/${tanggalSaja}`)

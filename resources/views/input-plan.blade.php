@@ -2,6 +2,10 @@
 
 @section('styles')
 <style>
+    #update-section {
+        display: none;
+    }
+
     .modal-body {
         overflow: hidden;
     }
@@ -297,6 +301,31 @@
 
         </section>
         <!-- /.Up Row -->
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-10">
+            <div class="card p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>Timer Settings</div>
+                    <div id="show-section">
+                        <strong class="border px-3 py-2 mt-1">
+                            <span id="timer-value">{{ $timer->timer }}</span> Seconds
+                        </strong>
+                        <button class="btn btn-info ml-2" id="edit-btn">Edit</button>
+                    </div>
+                    <div id="update-section">
+                        <form action="{{ route('update-timer', $timer->id) }}" method="POST">
+                            @csrf
+                            @method('post')
+                            <input type="number" required id="timer" value="{{ $timer->timer }}" name="timer"
+                                class="form-control d-inline" style="width: auto;">
+                            <button class="btn btn-primary ml-2" type="submit">Submit</button>
+                            <div class="btn btn-secondary ml-2" id="cancel-btn">Cancel</div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row justify-content-center">
         <!-- bottom row (We are only adding the ID to make the widgets sortable)-->
@@ -1511,5 +1540,15 @@
             table.appendChild(row);
         }
     }
+
+    document.getElementById('edit-btn').addEventListener('click', function() {
+        document.getElementById('show-section').style.display = 'none';
+        document.getElementById('update-section').style.display = 'block';
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+        document.getElementById('show-section').style.display = 'block';
+        document.getElementById('update-section').style.display = 'none';
+    });
 </script>
 @endsection
