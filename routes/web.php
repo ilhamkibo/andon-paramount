@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\InputPlanController;
+use App\Http\Controllers\InyuyController;
 use App\Http\Controllers\LineController;
+use App\View\Components\Inyuy;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,3 +43,4 @@ Route::delete('/planData/{id}', [InputPlanController::class, 'destroyPlanData'])
 Route::delete('/planData', [InputPlanController::class, 'bulkDestroyPlanData'])->name('planData.bulkDestroy');
 Route::post('/store-note/{id}', [LineController::class, 'storeNote'])->name('store-note');
 Route::delete('/delete-note/{id}', [LineController::class, 'deleteNote'])->name('delete-note');
+Route::get('/action', [InputPlanController::class, 'action'])->name('action');

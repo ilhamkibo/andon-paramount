@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 use App\Imports\BedModelsImport;
 use App\Imports\OperationTimeImport;
 use App\Imports\PlanImport;
+use App\Models\Note;
 use App\Models\OperationName;
+use App\Models\Production;
 use App\Models\Timer;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Calculation\Engine\Operands\Operand;
@@ -22,115 +24,125 @@ class InputPlanController extends Controller
 {
     public $message = '';
 
-    public function index()
+    private function getDataPlan($today)
     {
-        // $gregorianDate = '2024-04-01';
-        // $dt = Carbon::createFromFormat('Y-m-d', $gregorianDate);
-        $timer = Timer::first();
+        if (request('date') || request('line_id')) {
+            return $this->handleDateLineRequest();
+        }
 
-        $plans = $this->getDataPlan();
+        $dataPlans = Plan::whereDate('date', $today)
+            ->with(['bed_models'])
+            ->orderBy('queue', 'asc')
+            ->get();
 
-        $operationTimes = OperationTime::orderBy('name_id', 'asc')->whereNotNull('start')->with('operation_name')->get();
-        $operationNames = OperationName::all();
-        // dd($operationTimes);
-        $lines = Line::all();
-        $bedModels = BedModels::orderBy('name', 'asc')->get();
-        return view('input-plan', [
-            'plans' => $plans,
-            'lines' => $lines,
-            'bedModels' => $bedModels,
-            'operationTimes' => $operationTimes,
-            'operationNames' => $operationNames,
-            'timer' => $timer
-        ]);
+        if ($dataPlans->isEmpty()) {
+            $this->message = 'The data on ' . $today->format('F, j Y') . ' could not be found.';
+        }
+
+        return $dataPlans;
     }
 
-    private function getDataPlan()
+    private function handleDateLineRequest()
     {
-        if (request('date')) {
-            $date = request('date');
-            $dataPlans = Plan::whereDate('date', $date)
-                ->orderBy('queue', 'asc')
-                ->get();
-        } else {
-            $today = now()->format('Y-m-d');
-            $dataPlans = Plan::whereDate('date', $today)
-                ->orderBy('queue', 'asc')
-                ->get();
+        $today = Carbon::parse(request('date'))->setHour(8);
+        $dataPlans = Plan::where('line_id', 1)
+            ->with(['bed_models'])
+            ->whereDate('date', $today)
+            ->orderby('queue', 'asc')
+            ->get();
+
+        if ($dataPlans->isEmpty()) {
+            $this->message = 'The data on ' . $today->format('F, j Y') . ' could not be found.';
         }
-        // dd($dataPlans);
+        return $dataPlans;
+    }
 
-        if (count($dataPlans) !== 0) {
-            $operationTimes = OperationTime::where('name_id', $dataPlans[0]->time_option)->get();
-            $resultSet = [];
-            $previousOperationEnd = '';
-            foreach ($dataPlans as $key => $dataPlan) {
-                $bedModelId = $dataPlan->bed_models_id;
-                $targetQuantity = $dataPlan->target_quantity;
-                $bedModel = BedModels::find($bedModelId);
-                $estimatedSpendTime = number_format(($bedModel->tact_time * $targetQuantity) / 60, 2);
-                $planDate = Carbon::parse($dataPlan->date);
-                $startOperation = ($key == 0)
-                    ?  Carbon::parse($operationTimes[0]->start)->copy()->setDate(
-                        Carbon::parse($dataPlan->date)->year,
-                        Carbon::parse($dataPlan->date)->month,
-                        Carbon::parse($dataPlan->date)->day
-                    )
-                    : Carbon::parse($previousOperationEnd);
+    private function calculateBreakDuration($operationTimes, $startOperation, $estimatedEndTime, $planDate)
+    {
+        foreach ($operationTimes as $operationTime) {
+            if ($operationTime->status != 2) continue;
 
-                $estimatedEndTime = $startOperation->copy()->setDate($planDate->year, $planDate->month, $planDate->day)->addMinutes(ceil($estimatedSpendTime * 60));
+            $breakStartTime = Carbon::parse($operationTime->start)->setDate($planDate->year, $planDate->month, $planDate->day);
+            $breakEndTime = Carbon::parse($operationTime->finish)->setDate($planDate->year, $planDate->month, $planDate->day);
 
-                foreach ($operationTimes as $index => $operationTime) {
-                    if ($operationTime->status == 2) {
-                        $breakStartTime = Carbon::parse($operationTime->start)->setDate($planDate->year, $planDate->month, $planDate->day);
-                        $breakEndTime = Carbon::parse($operationTime->finis)->setDate($planDate->year, $planDate->month, $planDate->day);
-
-                        if ($breakStartTime->gt($startOperation) && $estimatedEndTime->gt($breakStartTime)) {
-                            $breakDuration = Carbon::parse($operationTime->finish)->diffInMinutes(Carbon::parse($operationTime->start));
-                            $estimatedEndTime->addMinutes(ceil($breakDuration));
-                        }
-
-                        $previousOperationEnd = $estimatedEndTime->copy();
-                    }
-                    if ($index == (count($operationTimes) - 1)) {
-                        $previousOperationEnd = $estimatedEndTime->copy()->addSeconds(7.5 * 60);
-                    }
-                }
-
-                foreach ($operationTimes as $value) {
-                    if ($value->status == 2) {
-                        $breakStartTime1 = Carbon::parse($value->start)->setDate($planDate->year, $planDate->month, $planDate->day);
-                        $breakEndTime1 = Carbon::parse($value->finish)->setDate($planDate->year, $planDate->month, $planDate->day);
-
-                        // echo $previousOperationEnd . ' ' . $breakStartTime1 . ' ' . $breakEndTime1 . ' ' . $key . '</br>';
-                        if ($previousOperationEnd->between($breakStartTime1, $breakEndTime1)) {
-                            $breakDuration1 = Carbon::parse($value->finish)->diffInMinutes(Carbon::parse($value->start));
-                            $previousOperationEnd->addMinutes(ceil($breakDuration1));
-                            // $previousOperationEnd = $breakEndTime1;
-
-                            // echo $previousOperationEnd . ' ' . $breakStartTime1 . ' ' . $breakEndTime1 . ' ' . $key . '</br>';
-                        }
-                    }
-                }
-
-                $resultSet[] = (object)[
-                    'id' => $dataPlan->id,
-                    'time_option' => $dataPlan->time_option,
-                    'line_id' => $dataPlan->line_id,
-                    'start_time' => $startOperation,
-                    'end_time' => $estimatedEndTime,
-                    'target_quantity' => $targetQuantity,
-                    'bed_models' => $dataPlan->bed_models->name,
-                    'bed_models_id' => $bedModelId,
-                    'tact_time' => $dataPlan->bed_models->tact_time,
-                    'date' => $dataPlan->date
-                ];
+            if ($breakStartTime->gt($startOperation) && $estimatedEndTime->gt($breakStartTime)) {
+                $breakDuration = $breakEndTime->diffInMinutes($breakStartTime);
+                $estimatedEndTime->addMinutes(ceil($breakDuration));
             }
-            // dd($resultSet);
-            return $resultSet;
-        } else {
-            return $dataPlans;
         }
+        return $estimatedEndTime;
+    }
+
+    private function adjustForBreaks($operationTimes, $previousOperationEnd, $planDate)
+    {
+        foreach ($operationTimes as $value) {
+            if ($value->status != 2) continue;
+
+            $breakStartTime = Carbon::parse($value->start)->setDate($planDate->year, $planDate->month, $planDate->day);
+            $breakEndTime = Carbon::parse($value->finish)->setDate($planDate->year, $planDate->month, $planDate->day);
+
+            if ($previousOperationEnd->between($breakStartTime, $breakEndTime)) {
+                $breakDuration = $breakEndTime->diffInMinutes($breakStartTime);
+                $previousOperationEnd->addMinutes(ceil($breakDuration));
+            }
+        }
+        return $previousOperationEnd;
+    }
+
+    private function newDataPlan($dataPlans, $operationTimes)
+    {
+        $resultSet = [];
+        $previousOperationEnd = '';
+
+        foreach ($dataPlans as $key => $dataPlan) {
+            $bedModel = BedModels::find($dataPlan->bed_models_id);
+            $estimatedSpendTime = number_format(($bedModel->tact_time * $dataPlan->target_quantity) / 60, 2);
+            $planDate = Carbon::parse($dataPlan->date);
+
+            $startOperation = ($key == 0)
+                ? Carbon::parse($operationTimes[0]->start)->copy()->setDate($planDate->year, $planDate->month, $planDate->day)
+                : Carbon::parse($previousOperationEnd);
+
+            $estimatedEndTime = $startOperation->copy()->addMinutes(ceil($estimatedSpendTime * 60));
+            $estimatedEndTime = $this->calculateBreakDuration($operationTimes, $startOperation, $estimatedEndTime, $planDate);
+            $previousOperationEnd = $this->adjustForBreaks($operationTimes, $estimatedEndTime, $planDate)->addSeconds(ceil($bedModel->setting_time * 60));
+
+            $resultSet[] = (object)[
+                'id' => $dataPlan->id,
+                'line_id' => $dataPlan->line_id,
+                'start_time' => $startOperation,
+                'end_time' => $estimatedEndTime,
+                'target_quantity' => $dataPlan->target_quantity,
+                'bed_models' => $dataPlan->bed_models->name,
+                'bed_models_id' => $dataPlan->bed_models_id,
+                'tact_time' => floatval($dataPlan->bed_models->tact_time),
+                'date' => $dataPlan->date
+            ];
+        }
+        return $resultSet;
+    }
+
+    public function index()
+    {
+        $timer = Timer::first();
+        $today = Carbon::today();
+        $dataPlans = $this->getDataPlan($today);
+
+        $operationTimesNewPlans = $dataPlans->isEmpty()
+            ? OperationTime::where('name_id', 1)->get()
+            : OperationTime::where('name_id', $dataPlans[0]->time_option)->whereNotNull('start')->get();
+
+        $plans = $this->newDataPlan($dataPlans, $operationTimesNewPlans);
+        $operationTimes = OperationTime::orderBy('name_id', 'asc')->whereNotNull('start')->with('operation_name')->get();
+
+        return view('input-plan', [
+            'plans' => $plans,
+            'lines' => Line::all(),
+            'bedModels' => BedModels::all(),
+            'operationTimes' => $operationTimes,
+            'operationNames' => OperationName::all(),
+            'timer' => $timer,
+        ]);
     }
 
     public function store(Request $request)
@@ -450,12 +462,30 @@ class InputPlanController extends Controller
     public function bulkDestroyPlanData()
     {
         $today = Carbon::today();
-        if (request('date')) {
-            Plan::whereDate('date', Carbon::parse(request('date')))->delete();
-        } else {
-            Plan::whereDate('date', $today)->delete();
-        }
-        return redirect('/input-plan')->with('sukses', 'Data plan deleted successfully!'); // Ganti 'route_name' dengan nama rute yang sesuai.
+        $date = request('date') ? Carbon::parse(request('date')) : $today;
+
+        // Retrieve the Plan records to be deleted
+        $plans = Plan::whereDate('date', $date)->get();
+
+        // Extract the plan IDs
+        $planIds = $plans->pluck('id');
+
+        // Retrieve the Production records associated with the Plan IDs
+        $productions = Production::whereIn('plan_id', $planIds)->get();
+
+        // Extract the production IDs
+        $productionIds = $productions->pluck('id');
+
+        // Delete the associated notes
+        Note::whereIn('production_id', $productionIds)->delete();
+
+        // Delete the associated productions
+        Production::whereIn('id', $productionIds)->delete();
+
+        // Delete the plans
+        Plan::whereIn('id', $planIds)->delete();
+
+        return redirect('/input-plan')->with('sukses', 'Data plan deleted successfully!');
     }
 
     public function importMaster(Request $request)
@@ -521,5 +551,77 @@ class InputPlanController extends Controller
 
         // Redirect back with error if file is not present
         return redirect()->back()->with('gagal', 'File tidak ditemukan.');
+    }
+
+    public function action(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = $request->get('query');
+            if ($query != '') {
+                $data = BedModels::where('name', 'like', '%' . $query . '%')
+                    ->orderBy('id', 'desc')
+                    ->paginate(5);
+            } else {
+                $data = BedModels::orderBy('id', 'asc')->paginate(5);
+            }
+
+            $table_data = '';
+            if ($data->count() > 0) {
+                foreach ($data as $key => $item) {
+                    $table_data .= '
+                    <tr>
+                        <td class="py-1 text-center align-middle">' . ($data->currentPage() - 1) * $data->perPage() + $key + 1 . '</td>
+                        <td class="py-1 text-center align-middle">' . $item->name . '</td>
+                        <td class="py-1 text-center align-middle">' . $item->tact_time . '</td>
+                        <td class="py-1 text-center align-middle">' . $item->setting_time . '</td>
+                        <td class="py-1 text-center ">
+                            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#editMasterModal' . $item->id . '">Edit</button>
+                            
+                            <div class="modal fade" id="editMasterModal' . $item->id . '" tabindex="-1" role="dialog" aria-labelledby="editMasterModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editMasterModalLabel">Edit Data</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <form action="' . route('masterData.update', $item->id) . '" method="POST">
+                                            ' . csrf_field() . '
+                                            ' . method_field('POST') . '
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label for="name">Name</label>
+                                                    <input required type="text" class="form-control" id="name" value="' . $item->name . '" name="name">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="tact_time">Tact Time</label>
+                                                    <input required type="number" step="0.01" class="form-control" id="tact_time" value="' . $item->tact_time . '" name="tact_time">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="setting_time">Setting Time</label>
+                                                    <input required type="number" step="0.01" class="form-control" id="setting_time" value="' . $item->setting_time . '" name="setting_time">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>';
+                }
+            } else {
+                $table_data = '<tr><td colspan="5" class="text-center">No data available</td></tr>';
+            }
+
+            return response()->json([
+                'table_data' => $table_data,
+                'pagination' => (string) $data->links(),
+            ]);
+        }
     }
 }

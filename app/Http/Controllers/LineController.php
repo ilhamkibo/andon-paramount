@@ -85,6 +85,24 @@ class LineController extends Controller
         return $dataPlans;
     }
 
+    private function handleDateLineRequest()
+    {
+        $today = Carbon::parse(request('date'))->setHour(8);
+
+        $dataPlans = Plan::where('line_id', request('line_id'))
+            ->with(['bed_models'])
+            ->whereDate('date', $today)
+            ->orderby('queue', 'asc')
+            ->get();
+
+        if ($dataPlans->count() === 0) {
+
+            $this->message = 'The data on ' . $today->format('F, j Y') . ' could not be found.';
+        }
+
+        return $dataPlans;
+    }
+
     public function updateOperationTimePlanData(Request $request, $date)
     {
         $validated = $request->validate([
@@ -107,24 +125,6 @@ class LineController extends Controller
 
         // Redirect back with success message
         return redirect()->back()->with('sukses', 'Plan operation time updated successfully!');
-    }
-
-    private function handleDateLineRequest()
-    {
-        $today = Carbon::parse(request('date'))->setHour(8);
-
-        $dataPlans = Plan::where('line_id', request('line_id'))
-            ->with(['bed_models'])
-            ->whereDate('date', $today)
-            ->orderby('queue', 'asc')
-            ->get();
-
-        if ($dataPlans->count() === 0) {
-
-            $this->message = 'The data on ' . $today->format('F, j Y') . ' could not be found.';
-        }
-
-        return $dataPlans;
     }
 
     private function createObjectChart($resultSet, $breakTimes0)
@@ -235,7 +235,6 @@ class LineController extends Controller
                     Carbon::parse($dataPlan->date)->day
                 )->addSeconds(ceil($bedModel->setting_time * 60))
                 : Carbon::parse($previousOperationEnd);
-            // : Carbon::parse($previousOperationEnd)->addSeconds(ceil($bedModel->setting_time * 60));
 
             $estimatedEndTime = $startOperation->copy()->setDate($planDate->year, $planDate->month, $planDate->day)->addMinutes(ceil($estimatedSpendTime * 60));
             foreach ($operationTimes as $index => $operationTime) {
@@ -430,8 +429,8 @@ class LineController extends Controller
             $logProductions[] = $logProduction;
         }
         $loggers = Production::whereDate('created_at', $dateReq)->with(['note', 'plan'])->get();
-        // dd($loggers);
-        // dd($logProductions);
+
+        // dd($logProductions, $loggers);
         return view('components.product', compact('logProductions', 'loggers', 'newDataPlans'));
     }
 
@@ -473,56 +472,38 @@ class LineController extends Controller
         $menitArray = [];
         $detikArray = [];
         $dataProductions = [];
+
         // Variabel untuk menyimpan hasil
         $startDates = [];
         $endDates = [];
 
         foreach ($newDataPlans as $timeObject) {
             // Explode string waktu menjadi array jam, menit, dan detik
-            $onlyTime = Carbon::parse($timeObject->start_time);
+            // $jamStart = Carbon::parse($timeObject->start_time);
             // Simpan nilai jam, menit, dan detik ke dalam variabel
 
-            $jamStart = Carbon::parse($operationTimes[0]->start)->addSeconds($bedModels[0]->setting_time * 60);
+            $jamStart = Carbon::parse($operationTimes[0]->start);
+            // $jamStart = Carbon::parse($operationTimes[0]->start)->addSeconds($bedModels[0]->setting_time * 60);
             $hourStart = $jamStart->hour;
             $menitStart = $jamStart->minute;
             $secondStart = $jamStart->second;
+
+            // $dataProduction = Production::where('plan_id', $timeObject->id)->where('created_at', '>=', $timeObject->start_time->startOfDay()->setHour($hourStart)->setMinutes($menitStart)->format('Y-m-d H:i:s'))->where('updated_at', null)->with(['plan'])->get();
+            $dataProduction = Production::where('plan_id', $timeObject->id)->where('updated_at', null)->with(['plan'])->get();
+            // dd($dataProduction);
+            $dataProductions[] = $dataProduction;
 
             $jamArray[] = $hourStart;
             $menitArray[] = $menitStart;
             $detikArray[] = $secondStart;
         }
-        // dd($newDataPlans);
-        foreach ($newDataPlans as $key => $value) {
-            // echo $value->id . ' ' . $jamArray[$key] . '</br>';
-            $jamStart = Carbon::parse($operationTimes[0]->start);
-            $hourStart = $jamStart->hour;
-            $menitStart = $jamStart->minute;
-            $secondStart = $jamStart->second;
-            // echo $value->id . ' ' . $hourStart . '</br>';
-            $dataProduction = Production::where('plan_id', $value->id)->where('created_at', '>=', $value->start_time->startOfDay()->setHour($hourStart)->setMinutes($menitStart)->format('Y-m-d H:i:s'))->with(['plan'])->get();
-            // $dataProduction = Pr10oduction::where('plan_id', $value->id)->with(['plan'])->get();
-            // dd($dataProduction);
-            $dataProductions[] = $dataProduction;
-        }
-
-
-        // list($jam, $menit, $detik) = explode(':', $operationTimes[0]->start);
-        // $planDate = Carbon::parse('2024-01-12');
-        // $latestData = Production::where('plan_id', 13)
-        //     ->where('created_at', '>=', $planDate->startOfDay()->setHour($operationTimes[0]->start)->format('Y-m-d H:i:s'))
-        //     ->with(['plan'])
-        //     ->get();
-
-
-        // dd($dataProductions);
-
-
+        // dd($newDataPlans, $dataProductions, $jamArray, $menitArray, $detikArray);
 
 
         // Dapatkan tanggal awal dan akhir dari data terbaru
         foreach ($dataProductions as $key => $data) {
             if (!$data->isEmpty()) {
-
+                // dd($data);
                 // Loop melalui setiap data terbaru
                 // Ambil nilai jam, menit, dan detik dari data terbaru
                 // Buat objek Carbon untuk startDate
@@ -541,7 +522,9 @@ class LineController extends Controller
             } else {
                 // Jika tidak ada data, gunakan tanggal dari plan atau tanggal default jika plan tidak ada
                 $startOfDay = $newDataPlans[0]->date ? Carbon::parse($newDataPlans[0]->date)->startOfDay() : now()->startOfDay();
-                $startDate = $startOfDay->setHour($jamArray[$key])->setMinute($menitArray[$key] - 5)->setSecond($detikArray[$key])->setMicrosecond(0);
+                // $startDate = $startOfDay->setHour($jamArray[$key])->setMinute($menitArray[$key] - 5)->setSecond($detikArray[$key])->setMicrosecond(0);
+                $startDate = $startOfDay->setHour($jamArray[$key])->setMinute($menitArray[$key])->setSecond($detikArray[$key])->setMicrosecond(0);
+
 
                 $endOfDay = $newDataPlans[0]->date ? Carbon::parse($newDataPlans[0]->date)->endOfDay() : now()->endOfDay();
                 $endDate = $endOfDay->setHour($jamArray[$key])->setMinute($menitArray[$key])->setSecond($detikArray[$key])->setMicrosecond(0);
@@ -551,7 +534,7 @@ class LineController extends Controller
             }
         }
 
-        // dd($startDates);
+        // dd($startDates, $endDates);
 
         $allIntervalData = [];
 
@@ -561,14 +544,14 @@ class LineController extends Controller
             // Ambil nilai startTime dan endTime untuk setiap data
             $startTime = $startDates[$keyOuter]->timestamp;
             $endTime = $endDates[$keyOuter]->timestamp;
+            // dd($startDates[$keyOuter], $endDates[$keyOuter]);
 
             // Iterasi melalui interval waktu
             while ($startTime < $endTime) {
-
-
                 $interval = 5 * 60; // 5 menit dalam detik
                 $intervalStart = date('H:i:s', $startTime);
                 $intervalEnd = date('H:i:s', $startTime + $interval);
+                // dd($intervalStart, $intervalEnd);
 
                 if (!$dataOuter->isEmpty() && count($intervalData) == 0) {
                     $isStartTimeRounded = ($startTime % 300) === 0;
@@ -579,12 +562,12 @@ class LineController extends Controller
                         $interval = $minutesToNextInterval * 60;
                     }
                 }
+
                 // Hitung jumlah baris untuk interval waktu tertentu
                 $rowCount = $dataOuter->filter(function ($item) use ($intervalStart, $intervalEnd) {
                     $createdAt = date('H:i:s', strtotime($item->created_at));
                     return $createdAt >= $intervalStart && $createdAt < $intervalEnd;
                 })->count();
-
                 // Jumlahkan jumlah baris dari interval sebelumnya
                 if (!empty($intervalData)) {
                     $rowCount += end($intervalData)['y'];
@@ -604,44 +587,38 @@ class LineController extends Controller
             $allIntervalData[$keyOuter] = $intervalData;
         }
 
-        // dd($allIntervalData);
+        $dataApiFix = $allIntervalData;
 
-        // Inisialisasi array untuk menyimpan interval dan jumlah baris
-        // $intervalData = [];
+        foreach ($dataApiFix as &$subArray) {
+            // Find the x values where y is 1 or 2
+            $xValuesForY1or2 = array_filter($subArray, function ($item) {
+                return $item['y'] === 1 || $item['y'] === 2;
+            });
+            $xValuesForY1or2 = array_column($xValuesForY1or2, 'x');
 
-        // // Tentukan waktu awal dan akhir
-        // $startTime = $startDate->timestamp;
-        // $endTime = $endDate->timestamp;
-        // $interval = 5 * 60; // 5 menit dalam detik
+            // Track seen 'x' values for 'y' == 0
+            $seenXForY0 = [];
 
-        // // Iterasi melalui interval waktu
-        // while ($startTime < $endTime) {
+            // Modify x values where y is 0 and remove duplicates
+            foreach ($subArray as $key => &$item) {
+                if ($item['y'] === 0) {
+                    $item['x'] = !empty($xValuesForY1or2) ? $xValuesForY1or2[0] : $item['x'];
 
-        //     $intervalStart = date('H:i', $startTime);
-        //     $intervalEnd = date('H:i', $startTime + $interval);
+                    if (in_array($item['x'], $seenXForY0)) {
+                        unset($subArray[$key]); // Remove duplicate
+                    } else {
+                        $seenXForY0[] = $item['x'];
+                    }
+                }
+            }
+            // Reindex array keys
+            $subArray = array_values($subArray);
+        }
 
-        //     // Hitung jumlah baris untuk interval waktu tertentu
-        //     $rowCount = $latestData->filter(function ($item) use ($intervalStart, $intervalEnd) {
-        //         $createdAt = date('H:i', strtotime($item->created_at));
-        //         return $createdAt >= $intervalStart && $createdAt < $intervalEnd;
-        //     })->count();
+        // dd($dataApiFix, $allIntervalData);
 
-        //     // Jumlahkan jumlah baris dari interval sebelumnya
-        //     if (!empty($intervalData)) {
-        //         $rowCount += end($intervalData)['y'];
-        //     }
 
-        //     // Simpan data interval dan jumlah baris ke dalam array
-        //     $intervalData[] = [
-        //         'x' => Carbon::parse($startTime)->format('Y-m-d ') . $intervalEnd . ":00",
-        //         'y' => $rowCount,
-        //     ];
-
-        //     // Tambahkan 5 menit untuk iterasi selanjutnya
-        //     $startTime += $interval;
-        // }
-
-        return response()->json($allIntervalData);
+        return response()->json($dataApiFix);
     }
 
     public function storeNote(Request $request, $id)

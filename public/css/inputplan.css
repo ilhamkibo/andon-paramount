@@ -1,0 +1,50 @@
+#update-section {
+    display: none;
+}
+
+.modal-body {
+    overflow: hidden;
+}
+
+.table-container {
+    display: block;
+    max-height: 400px;
+    /* Adjust this value as needed */
+    overflow-y: auto;
+}
+
+.table-container thead,
+.table-container tbody {
+    display: block;
+}
+
+.table-container tbody {
+    height: 300px;
+    /* Adjust this value as needed */
+    overflow-y: auto;
+}
+
+.table-container th,
+.table-container td {
+    width: 150px;
+    /* Adjust this value as needed to match your table structure */
+}
+
+.form-row-container {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+}
+
+.form-row-container .form-row {
+    display: flex;
+}
+
+.form-row-container .form-group {
+    flex: 1;
+}
+
+.form-row-container py-2 .form-group label {
+    display: block;
+}
