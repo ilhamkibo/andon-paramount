@@ -513,7 +513,6 @@ class LineController extends Controller
                     ->setHour($jamArray[$key])
                     ->setMinute($menitArray[$key] - 5)
                     ->setSecond($detikArray[$key]);
-
                 // Buat endDate menggunakan now() dan timestamp
                 $endDate = Carbon::parse($data->max('created_at'));
                 // Simpan startDate dan endDate dalam array
@@ -566,7 +565,7 @@ class LineController extends Controller
                 // Hitung jumlah baris untuk interval waktu tertentu
                 $rowCount = $dataOuter->filter(function ($item) use ($intervalStart, $intervalEnd) {
                     $createdAt = date('H:i:s', strtotime($item->created_at));
-                    return $createdAt >= $intervalStart && $createdAt < $intervalEnd;
+                    return $createdAt >= $intervalStart && $createdAt <= $intervalEnd;
                 })->count();
                 // Jumlahkan jumlah baris dari interval sebelumnya
                 if (!empty($intervalData)) {

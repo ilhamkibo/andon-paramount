@@ -106,23 +106,22 @@
                                     </div>
                                     <div class="mt-1"
                                         style="display: flex; align-items: center; justify-content: center; text-align: center">
-                                        <h3 class="border rounded p-1"
+                                        <h3 class="border rounded p-1 mr-1"
                                             style="font-size:30px; flex: 1; background-color: {{ $colorsOut[$colorIndex] }}; margin: 0; line-height: 1;">
                                             <strong>Target</strong>
                                         </h3>
-                                        <h1 class="border-right border-top border-bottom rounded p-1"
+                                        <h1 class="border rounded p-1"
                                             style="font-size:30px; margin: 0; flex: 1; line-height: 1;">
                                             <strong>{{ $item->target_quantity }}</strong>
                                         </h1>
                                     </div>
                                     <div
                                         style="display: flex; align-items: center; justify-content: center; text-align: center">
-                                        <h1 class="border rounded p-1"
+                                        <h1 class="border rounded p-1 mr-1"
                                             style="font-size:30px; flex: 1; background-color: {{ $colorsOut[$colorIndex + 1] }}; margin: 0; line-height: 1;">
                                             <strong>Actual</strong>
                                         </h1>
-                                        <h1 id="actualQty{{ $index + 1 }}"
-                                            class="border-right border-top border-bottom rounded p-1"
+                                        <h1 id="actualQty{{ $index + 1 }}" class="border rounded p-1"
                                             style="font-size:30px;  margin: 0; flex: 1; line-height: 1;">-</h1>
                                     </div>
                                 </div>
@@ -144,26 +143,11 @@
         <hr>
         <!-- /.row -->
         <!-- Main row -->
-        <section class="row mb-3 justify-content-center">
+        {{-- <section class="row mb-3 justify-content-center">
             <div class="col-lg-12">
-                <form class="form-inline" method="get" action="{{ route('production') }}">
-                    @csrf
-                    <div hidden>
-                        <label for="line_id">Line Number:</label>
-                        <select name="line_id" class="mx-sm-3 form-control">
-                            <option value="1" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '1') selected @endif>Line 1</option>
-                            <option value="2" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '2') selected @endif>Line 2</option>
-                            <!-- Tambahkan pilihan lainnya sesuai kebutuhan -->
-                        </select>
-                    </div>
-                    <label for="date">Date:</label>
-                    <input type="date" id="date" name="date"
-                        value="{{ !empty($dataPlans) && isset($dataPlans[0]) ? date('Y-m-d', strtotime($dataPlans[0]->date)) : '' }}"
-                        class="mx-sm-3 form-control">
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
+                
             </div>
-        </section>
+        </section> --}}
         <section class="row justify-content-center">
             <div class="col-lg-4">
                 @if ($message !== '')
@@ -196,11 +180,49 @@
                                     </div>
                                     <button type="submit" class="btn btn-primary mb-2">Submit Change</button>
                                 </form>
+                                <form class="form-inline border-right px-2" method="get"
+                                    action="{{ route('production') }}">
+                                    @csrf
+                                    <div hidden>
+                                        <label for="line_id">Line Number:</label>
+                                        <select name="line_id" class="mx-sm-3 form-control">
+                                            <option value="1" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '1') selected @endif>Line 1
+                                            </option>
+                                            <option value="2" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '2') selected @endif>Line 2
+                                            </option>
+                                            <!-- Tambahkan pilihan lainnya sesuai kebutuhan -->
+                                        </select>
+                                    </div>
+                                    <label for="date">Date:</label>
+                                    <input type="date" id="date" name="date"
+                                        value="{{ !empty($dataPlans) && isset($dataPlans[0]) ? date('Y-m-d', strtotime($dataPlans[0]->date)) : '' }}"
+                                        class="mx-sm-3 form-control">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
                                 <a class="ml-2"
                                     href="line/{{ \Carbon\Carbon::parse($dataPlans[0]->date)->format('Y-m-d') }}">Details
                                     data <i class="fas fa-arrow-circle-right"></i></a>
                             @else
-                                <span>Plan Production Chart </span>
+                                <span class="pr-2">Plan Production Chart </span>
+                                <form class="form-inline border-left px-2" method="get"
+                                    action="{{ route('production') }}">
+                                    @csrf
+                                    <div hidden>
+                                        <label for="line_id">Line Number:</label>
+                                        <select name="line_id" class="mx-sm-3 form-control">
+                                            <option value="1" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '1') selected @endif>Line 1
+                                            </option>
+                                            <option value="2" @if (!empty($dataPlans) && isset($dataPlans[0]) && $dataPlans[0]->line_id == '2') selected @endif>Line 2
+                                            </option>
+                                            <!-- Tambahkan pilihan lainnya sesuai kebutuhan -->
+                                        </select>
+                                    </div>
+                                    <label for="date">Date:</label>
+                                    <input type="date" id="date" name="date"
+                                        value="{{ !empty($dataPlans) && isset($dataPlans[0]) ? date('Y-m-d', strtotime($dataPlans[0]->date)) : '' }}"
+                                        class="mx-sm-3 form-control">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
                             @endif
                         </h3>
                         @php
@@ -418,8 +440,8 @@
                                                 chart.ctx.fillStyle = dataset.backgroundColor;
                                             }
 
-                                            chart.ctx.fillRect(x - ((textWidth + 10) / 2), y - 35,
-                                                textWidth + 10, 30);
+                                            chart.ctx.fillRect(x - ((textWidth + 15) / 2), y - 35,
+                                                textWidth + 15, 30);
 
                                             chart.ctx.beginPath();
                                             chart.ctx.moveTo(x, y);
@@ -427,9 +449,9 @@
                                             chart.ctx.lineTo(x + 5, y - 5);
                                             chart.ctx.fill();
 
-                                            chart.ctx.font = '30px Arial';
+                                            chart.ctx.font = '25px Arial';
                                             chart.ctx.fillStyle = 'white';
-                                            chart.ctx.fillText(text, x - (textWidth / 2), y - 17);
+                                            chart.ctx.fillText(text, x - (textWidth / 2), y - 10);
                                         }
                                     } else {
                                         if (typeof chart.data.datasets[i].data[index].x === 'string' &&
@@ -457,9 +479,9 @@
                                             chart.ctx.lineTo(x + 5, y + 5);
                                             chart.ctx.fill();
 
-                                            chart.ctx.font = '30px Arial';
+                                            chart.ctx.font = '25px Arial';
                                             chart.ctx.fillStyle = 'white';
-                                            chart.ctx.fillText(text, x - (textWidth / 2), y + 21);
+                                            chart.ctx.fillText(text, x - (textWidth / 2), y + 28);
                                         }
                                     }
                                 }
@@ -554,7 +576,7 @@
                             enabled: true
                         },
                         legend: {
-                            display: true,
+                            display: false,
                             onClick: function(e) {
                                 e.stopPropagation(); // Menghentikan event klik
                             },
@@ -683,7 +705,6 @@
 
                 axios.get(`http://127.0.0.1:3003/api/active-model-modbus`)
                     .then(response => {
-                        console.log("🚀 ~ oneSecondFunction ~ response:", response.data.bed_models[0]?.name)
                         document.getElementById('activeModel').innerHTML =
                             `<h3>Selected Model: <span style="background-color: ${colorsArray[(response.data.id*2)+1]};">${response.data.bed_models[0]?.name}</span></h3>`;
                     })
@@ -693,12 +714,19 @@
 
                 for (let i = 1; i <= Math.min(dataPlans.length, 6); i++) {
                     const actualQty = document.getElementById(`actualQty${i}`);
-
                     if (actualQty) {
                         const datasetIndex = 2 * i - 1;
+                        const dataset = salesChartData.datasets[datasetIndex]?.data;
+                        const yValue = dataset?.[dataset.length - 1]?.y ?? 0; // Gunakan nullish coalescing untuk default 0
+                        const yValueReal = yValue !== 0 ? yValue : 0;
                         actualQty.innerHTML =
-                            `<strong>${salesChartData.datasets[datasetIndex].data[salesChartData.datasets[datasetIndex].data.length - 1].y}</strong> `;
+                            `<strong>${yValueReal}</strong> `;
                     }
+                    // if (actualQty) {
+                    //     const datasetIndex = 2 * i - 1;
+                    //     actualQty.innerHTML =
+                    //         `<strong>${salesChartData.datasets[datasetIndex].data[salesChartData.datasets[datasetIndex].data.length - 1].y}</strong> `;
+                    // }
                 }
 
             }
